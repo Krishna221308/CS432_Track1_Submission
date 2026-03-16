@@ -180,6 +180,45 @@ export const mockLostItems = [
   },
 ];
 
+// Mock Order Assignments Data - attributes: assignment_id, order_id, employee_id, assigned_role, assigned_date
+export const mockOrderAssignments = [
+  {
+    assignment_id: 'ASS-001',
+    order_id: 'ORD-001',
+    employee_id: 'EMP-001',
+    assigned_role: 'Laundry Handler',
+    assigned_date: '2025-03-10',
+  },
+  {
+    assignment_id: 'ASS-002',
+    order_id: 'ORD-002',
+    employee_id: 'EMP-002',
+    assigned_role: 'Delivery Agent',
+    assigned_date: '2025-03-13',
+  },
+  {
+    assignment_id: 'ASS-003',
+    order_id: 'ORD-003',
+    employee_id: 'EMP-001',
+    assigned_role: 'Quality Inspector',
+    assigned_date: '2025-03-14',
+  },
+  {
+    assignment_id: 'ASS-004',
+    order_id: 'ORD-004',
+    employee_id: 'EMP-003',
+    assigned_role: 'Laundry Handler',
+    assigned_date: '2025-03-08',
+  },
+  {
+    assignment_id: 'ASS-005',
+    order_id: 'ORD-005',
+    employee_id: 'EMP-002',
+    assigned_role: 'Delivery Agent',
+    assigned_date: '2025-03-11',
+  },
+];
+
 // Mock utility functions for CRUD operations on local storage
 const STORAGE_KEY_EMPLOYEES = 'freshwash_employees';
 
@@ -217,4 +256,29 @@ export const deleteEmployee = (id) => {
   const employees = getEmployees();
   const filtered = employees.filter((e) => e.employee_id !== id);
   saveEmployees(filtered);
+};
+
+// Helper functions for employee dashboard
+export const getOrdersAssignedToEmployee = (employeeId) => {
+  const assignments = mockOrderAssignments.filter((a) => a.employee_id === employeeId);
+  const assignmentOrderIds = new Set(assignments.map((a) => a.order_id));
+  return mockOrders.filter((o) => assignmentOrderIds.has(o.order_id));
+};
+
+export const getPaymentsForAssignedOrders = (employeeId) => {
+  const assignedOrders = getOrdersAssignedToEmployee(employeeId);
+  const assignedOrderIds = new Set(assignedOrders.map((o) => o.order_id));
+  return mockPayments.filter((p) => assignedOrderIds.has(p.order_id));
+};
+
+export const getFeedbacksForAssignedOrders = (employeeId) => {
+  const assignedOrders = getOrdersAssignedToEmployee(employeeId);
+  const assignedOrderIds = new Set(assignedOrders.map((o) => o.order_id));
+  return mockFeedbacks.filter((f) => assignedOrderIds.has(f.order_id));
+};
+
+export const getLostItemsForAssignedOrders = (employeeId) => {
+  const assignedOrders = getOrdersAssignedToEmployee(employeeId);
+  const assignedOrderIds = new Set(assignedOrders.map((o) => o.order_id));
+  return mockLostItems.filter((i) => assignedOrderIds.has(i.order_id));
 };

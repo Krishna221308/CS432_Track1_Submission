@@ -28,9 +28,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
 
   const employeeMenu = [
     { name: 'Dashboard', path: '/employee', icon: <LayoutDashboard size={20} /> },
-    { name: 'Orders', path: '/employee/orders', icon: <ShoppingBag size={20} /> },
-    { name: 'Pickup Schedule', path: '/employee/pickup', icon: <Truck size={20} /> },
-    { name: 'Laundry Status', path: '/employee/status', icon: <Layers size={20} /> },
+    { name: 'Assigned Orders', path: '/employee/orders', icon: <ShoppingBag size={20} /> },
+    { name: 'Payments', path: '/employee/payments', icon: <BarChart3 size={20} /> },
+    { name: 'Feedbacks', path: '/employee/feedbacks', icon: <Layers size={20} /> },
+    { name: 'Lost/Damaged Items', path: '/employee/lost-items', icon: <Truck size={20} /> },
   ];
 
   const userMenu = [

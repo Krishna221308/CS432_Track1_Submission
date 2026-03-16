@@ -1,0 +1,201 @@
+import React, { useState, useMemo } from 'react';
+import { Search, Eye } from 'lucide-react';
+import { getOrdersAssignedToEmployee } from '../../utils/mockData';
+import '../../styles/admin.css';
+
+const EmployeeOrders = () => {
+  // Get current employee from auth
+  const currentEmployee = useMemo(() => {
+    const user = JSON.parse(localStorage.getItem('user') || '{}');
+    return user.employeeId || 'EMP-001';
+  }, []);
+
+  const [assignedOrders] = useState(getOrdersAssignedToEmployee(currentEmployee));
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterStatus, setFilterStatus] = useState('all');
+  const [selectedOrder, setSelectedOrder] = useState(null);
+
+  const filteredOrders = assignedOrders.filter((order) => {
+    const matchesSearch =
+      order.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      order.member_id.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || order.order_status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  const getStatusBadgeClass = (status) => {
+    return `badge ${status}`;
+  };
+
+  return (
+    <div className="admin-page">
+      <header className="page-header">
+        <h1>Assigned Orders</h1>
+        <p>View and manage your assigned orders</p>
+      </header>
+
+      <div className="stats-section">
+        <div className="stat-box">
+          <h3>Total Assigned</h3>
+          <p className="stat-value">{assignedOrders.length}</p>
+          <span className="stat-label">Orders</span>
+        </div>
+        <div className="stat-box">
+          <h3>Pending</h3>
+          <p className="stat-value" style={{ color: '#f59e0b' }}>
+            {assignedOrders.filter((o) => o.order_status === 'pending').length}
+          </p>
+          <span className="stat-label">Action Needed</span>
+        </div>
+        <div className="stat-box">
+          <h3>Completed</h3>
+          <p className="stat-value" style={{ color: '#10b981' }}>
+            {assignedOrders.filter((o) => o.order_status === 'completed').length}
+          </p>
+          <span className="stat-label">Done</span>
+        </div>
+      </div>
+
+      <div className="filters-section">
+        <div className="search-box">
+          <Search size={18} />
+          <input
+            type="text"
+            placeholder="Search by Order ID or Member ID..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        <div className="filter-buttons">
+          <button
+            className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('all')}
+          >
+            All Orders ({assignedOrders.length})
+          </button>
+          <button
+            className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('pending')}
+          >
+            Pending ({assignedOrders.filter((o) => o.order_status === 'pending').length})
+          </button>
+          <button
+            className={`filter-btn ${filterStatus === 'processing' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('processing')}
+          >
+            Processing ({assignedOrders.filter((o) => o.order_status === 'processing').length})
+          </button>
+          <button
+            className={`filter-btn ${filterStatus === 'completed' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('completed')}
+          >
+            Completed ({assignedOrders.filter((o) => o.order_status === 'completed').length})
+          </button>
+        </div>
+      </div>
+
+      <div className="table-card">
+        <div className="table-container">
+          <table className="data-table">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Member ID</th>
+                <th>Order Date</th>
+                <th>Pickup Time</th>
+                <th>Amount</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredOrders.length > 0 ? (
+                filteredOrders.map((order) => (
+                  <tr key={order.order_id}>
+                    <td className="order-id">{order.order_id}</td>
+                    <td>{order.member_id}</td>
+                    <td>{order.order_date}</td>
+                    <td>{order.pickup_time}</td>
+                    <td className="amount">${order.total_amount.toFixed(2)}</td>
+                    <td>
+                      <span className={getStatusBadgeClass(order.order_status)}>
+                        {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
+                      </span>
+                    </td>
+                    <td>
+                      <button
+                        className="action-btn view-btn"
+                        onClick={() => setSelectedOrder(order)}
+                        title="View Details"
+                      >
+                        <Eye size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan="7" className="no-data">
+                    No orders found
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Order Details Modal */}
+      {selectedOrder && (
+        <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Order Details</h2>
+              <button className="close-modal" onClick={() => setSelectedOrder(null)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-item">
+                  <label>Order ID</label>
+                  <p>{selectedOrder.order_id}</p>
+                </div>
+                <div className="detail-item">
+                  <label>Member ID</label>
+                  <p>{selectedOrder.member_id}</p>
+                </div>
+                <div className="detail-item">
+                  <label>Order Date</label>
+                  <p>{selectedOrder.order_date}</p>
+                </div>
+                <div className="detail-item">
+                  <label>Pickup Time</label>
+                  <p>{selectedOrder.pickup_time}</p>
+                </div>
+                <div className="detail-item">
+                  <label>Total Amount</label>
+                  <p className="amount-highlight">${selectedOrder.total_amount.toFixed(2)}</p>
+                </div>
+                <div className="detail-item">
+                  <label>Status</label>
+                  <p>
+                    <span
+                      className={getStatusBadgeClass(selectedOrder.order_status)}
+                      style={{ display: 'inline-block' }}
+                    >
+                      {selectedOrder.order_status.charAt(0).toUpperCase() + selectedOrder.order_status.slice(1)}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default EmployeeOrders;

@@ -9,7 +9,11 @@ import AdminPayments from './pages/admin/Payments';
 import AdminFeedbacks from './pages/admin/Feedbacks';
 import AdminEmployees from './pages/admin/Employees';
 import AdminLostItems from './pages/admin/LostItems';
-import EmployeeDashboard from './pages/EmployeeDashboard';
+import EmployeeDashboard from './pages/employee/Dashboard';
+import EmployeeOrders from './pages/employee/Orders';
+import EmployeePayments from './pages/employee/Payments';
+import EmployeeFeedback from './pages/employee/Feedback';
+import EmployeeLostItems from './pages/employee/LostItems';
 import UserDashboard from './pages/UserDashboard';
 import { isAuthenticated } from './utils/auth';
 
@@ -51,6 +55,10 @@ const routes = [
     ),
     children: [
       { path: '', element: <EmployeeDashboard /> },
+      { path: 'orders', element: <EmployeeOrders /> },
+      { path: 'payments', element: <EmployeePayments /> },
+      { path: 'feedbacks', element: <EmployeeFeedback /> },
+      { path: 'lost-items', element: <EmployeeLostItems /> },
     ],
   },
   {
