@@ -19,7 +19,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const adminMenu = [
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
     { name: 'Orders', path: '/admin/orders', icon: <ShoppingBag size={20} /> },
-    { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
+    { name: 'Members', path: '/admin/members', icon: <Users size={20} /> },
     { name: 'Payments', path: '/admin/payments', icon: <BarChart3 size={20} /> },
     { name: 'Employees', path: '/admin/employees', icon: <Users size={20} /> },
     { name: 'Feedbacks', path: '/admin/feedbacks', icon: <Layers size={20} /> },

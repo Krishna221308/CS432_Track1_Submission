@@ -123,6 +123,45 @@ export const mockFeedbacks = [
   },
 ];
 
+// Mock Members Data - attributes: member_id, member_name, email, phone, registration_date
+export const mockMembers = [
+  {
+    member_id: 'MEM-001',
+    member_name: 'Alice Roberts',
+    email: 'alice.roberts@email.com',
+    phone: '555-1001',
+    registration_date: '2024-06-15',
+  },
+  {
+    member_id: 'MEM-002',
+    member_name: 'Bob Thompson',
+    email: 'bob.thompson@email.com',
+    phone: '555-1002',
+    registration_date: '2024-08-20',
+  },
+  {
+    member_id: 'MEM-003',
+    member_name: 'Carol Martinez',
+    email: 'carol.martinez@email.com',
+    phone: '555-1003',
+    registration_date: '2024-09-10',
+  },
+  {
+    member_id: 'MEM-004',
+    member_name: 'David Lee',
+    email: 'david.lee@email.com',
+    phone: '555-1004',
+    registration_date: '2024-10-05',
+  },
+  {
+    member_id: 'MEM-005',
+    member_name: 'Emma White',
+    email: 'emma.white@email.com',
+    phone: '555-1005',
+    registration_date: '2024-11-12',
+  },
+];
+
 // Mock Employees Data - attributes: employee_id, employee_name, role, contact_number, joining_date
 export const mockEmployees = [
   {
@@ -177,6 +216,40 @@ export const mockLostItems = [
     item_description: 'Wool Sweater',
     reported_date: '2025-03-13',
     compensation_amount: 50.00,
+  },
+];
+
+// Mock Member Assignments Data - links members to employees for order handling
+export const mockMemberAssignments = [
+  {
+    assignment_id: 'MEMASN-001',
+    member_id: 'MEM-001',
+    employee_id: 'EMP-001',
+    assigned_date: '2025-03-01',
+  },
+  {
+    assignment_id: 'MEMASN-002',
+    member_id: 'MEM-002',
+    employee_id: 'EMP-002',
+    assigned_date: '2025-03-02',
+  },
+  {
+    assignment_id: 'MEMASN-003',
+    member_id: 'MEM-003',
+    employee_id: 'EMP-001',
+    assigned_date: '2025-03-03',
+  },
+  {
+    assignment_id: 'MEMASN-004',
+    member_id: 'MEM-004',
+    employee_id: 'EMP-003',
+    assigned_date: '2025-03-04',
+  },
+  {
+    assignment_id: 'MEMASN-005',
+    member_id: 'MEM-005',
+    employee_id: 'EMP-002',
+    assigned_date: '2025-03-05',
   },
 ];
 
@@ -260,9 +333,20 @@ export const deleteEmployee = (id) => {
 
 // Helper functions for employee dashboard
 export const getOrdersAssignedToEmployee = (employeeId) => {
-  const assignments = mockOrderAssignments.filter((a) => a.employee_id === employeeId);
-  const assignmentOrderIds = new Set(assignments.map((a) => a.order_id));
-  return mockOrders.filter((o) => assignmentOrderIds.has(o.order_id));
+  // Get orders from direct order assignments
+  const orderAssignments = mockOrderAssignments.filter((a) => a.employee_id === employeeId);
+  const directOrderIds = new Set(orderAssignments.map((a) => a.order_id));
+
+  // Get orders from member assignments (all orders of assigned members)
+  const memberAssignments = mockMemberAssignments.filter((a) => a.employee_id === employeeId);
+  const assignedMemberIds = new Set(memberAssignments.map((a) => a.member_id));
+  const memberOrderIds = new Set(
+    mockOrders.filter((o) => assignedMemberIds.has(o.member_id)).map((o) => o.order_id)
+  );
+
+  // Combine both direct assignments and member-based assignments
+  const allAssignedOrderIds = new Set([...directOrderIds, ...memberOrderIds]);
+  return mockOrders.filter((o) => allAssignedOrderIds.has(o.order_id));
 };
 
 export const getPaymentsForAssignedOrders = (employeeId) => {
@@ -281,4 +365,56 @@ export const getLostItemsForAssignedOrders = (employeeId) => {
   const assignedOrders = getOrdersAssignedToEmployee(employeeId);
   const assignedOrderIds = new Set(assignedOrders.map((o) => o.order_id));
   return mockLostItems.filter((i) => assignedOrderIds.has(i.order_id));
+};
+
+// Helper functions for member-employee assignments
+const STORAGE_KEY_MEMBER_ASSIGNMENTS = 'freshwash_member_assignments';
+
+export const getMemberAssignments = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_MEMBER_ASSIGNMENTS);
+  return stored ? JSON.parse(stored) : mockMemberAssignments;
+};
+
+export const saveMemberAssignments = (assignments) => {
+  localStorage.setItem(STORAGE_KEY_MEMBER_ASSIGNMENTS, JSON.stringify(assignments));
+};
+
+export const assignMemberToEmployee = (memberId, employeeId) => {
+  const assignments = getMemberAssignments();
+  
+  // Remove existing assignment for this member
+  const filtered = assignments.filter((a) => a.member_id !== memberId);
+  
+  // Add new assignment
+  const newAssignment = {
+    assignment_id: `MEMASN-${Date.now()}`,
+    member_id: memberId,
+    employee_id: employeeId,
+    assigned_date: new Date().toISOString().split('T')[0],
+  };
+  
+  filtered.push(newAssignment);
+  saveMemberAssignments(filtered);
+  return newAssignment;
+};
+
+export const removeMemberAssignment = (memberId) => {
+  const assignments = getMemberAssignments();
+  const filtered = assignments.filter((a) => a.member_id !== memberId);
+  saveMemberAssignments(filtered);
+};
+
+export const getAssignedMembersForEmployee = (employeeId) => {
+  const assignments = getMemberAssignments();
+  const assignedMemberIds = new Set(
+    assignments.filter((a) => a.employee_id === employeeId).map((a) => a.member_id)
+  );
+  return mockMembers.filter((m) => assignedMemberIds.has(m.member_id));
+};
+
+export const getAssignedEmployeeForMember = (memberId) => {
+  const assignments = getMemberAssignments();
+  const assignment = assignments.find((a) => a.member_id === memberId);
+  if (!assignment) return null;
+  return mockEmployees.find((e) => e.employee_id === assignment.employee_id);
 };
