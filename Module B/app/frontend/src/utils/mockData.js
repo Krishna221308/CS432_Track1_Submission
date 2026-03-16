@@ -418,3 +418,26 @@ export const getAssignedEmployeeForMember = (memberId) => {
   if (!assignment) return null;
   return mockEmployees.find((e) => e.employee_id === assignment.employee_id);
 };
+
+// Get the employee responsible for an order (via direct assignment or member assignment)
+export const getAssignedEmployeeForOrder = (orderId) => {
+  const memberAssignments = getMemberAssignments();
+  const orderAssignments = mockOrderAssignments;
+
+  // Check direct order assignment first
+  const directAssignment = orderAssignments.find((a) => a.order_id === orderId);
+  if (directAssignment) {
+    return mockEmployees.find((e) => e.employee_id === directAssignment.employee_id);
+  }
+
+  // Check member assignment (order's member assigned to an employee)
+  const order = mockOrders.find((o) => o.order_id === orderId);
+  if (order) {
+    const memberAssignment = memberAssignments.find((a) => a.member_id === order.member_id);
+    if (memberAssignment) {
+      return mockEmployees.find((e) => e.employee_id === memberAssignment.employee_id);
+    }
+  }
+
+  return null; // No assignment found
+};

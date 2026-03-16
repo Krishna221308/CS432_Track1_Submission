@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Eye } from 'lucide-react';
-import { getOrdersAssignedToEmployee } from '../../utils/mockData';
+import { getOrdersAssignedToEmployee, getAssignedEmployeeForOrder } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const EmployeeOrders = () => {
@@ -106,6 +106,7 @@ const EmployeeOrders = () => {
                 <th>Pickup Time</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Handler</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -124,6 +125,11 @@ const EmployeeOrders = () => {
                       </span>
                     </td>
                     <td>
+                      <span className="employee-badge">
+                        {getAssignedEmployeeForOrder(order.order_id)?.employee_name || 'Unassigned'}
+                      </span>
+                    </td>
+                    <td>
                       <button
                         className="action-btn view-btn"
                         onClick={() => setSelectedOrder(order)}
@@ -136,7 +142,7 @@ const EmployeeOrders = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="no-data">
+                  <td colSpan="8" className="no-data">
                     No orders found
                   </td>
                 </tr>
@@ -189,11 +195,31 @@ const EmployeeOrders = () => {
                     </span>
                   </p>
                 </div>
+                <div className="detail-item">
+                  <label>Handler</label>
+                  <p>
+                    <span className="employee-badge">
+                      {getAssignedEmployeeForOrder(selectedOrder.order_id)?.employee_name || 'Unassigned'}
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .employee-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #dbeafe;
+          color: #1e40af;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+      `}</style>
     </div>
   );
 };

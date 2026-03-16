@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Search, Eye } from 'lucide-react';
-import { mockOrders } from '../../utils/mockData';
+import { mockOrders, getAssignedEmployeeForOrder } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const AdminOrders = () => {
@@ -87,6 +87,7 @@ const AdminOrders = () => {
                 <th>Pickup Time</th>
                 <th>Amount</th>
                 <th>Status</th>
+                <th>Assigned Employee</th>
                 <th>Action</th>
               </tr>
             </thead>
@@ -105,6 +106,11 @@ const AdminOrders = () => {
                       </span>
                     </td>
                     <td>
+                      <span className="employee-badge">
+                        {getAssignedEmployeeForOrder(order.order_id)?.employee_name || 'Unassigned'}
+                      </span>
+                    </td>
+                    <td>
                       <button
                         className="action-btn view-btn"
                         onClick={() => setSelectedOrder(order)}
@@ -117,7 +123,7 @@ const AdminOrders = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="no-data">
+                  <td colSpan="8" className="no-data">
                     No orders found
                   </td>
                 </tr>
@@ -170,11 +176,31 @@ const AdminOrders = () => {
                     </span>
                   </p>
                 </div>
+                <div className="detail-item">
+                  <label>Assigned Employee</label>
+                  <p>
+                    <span className="employee-badge">
+                      {getAssignedEmployeeForOrder(selectedOrder.order_id)?.employee_name || 'Unassigned'}
+                    </span>
+                  </p>
+                </div>
               </div>
             </div>
           </div>
         </div>
       )}
+
+      <style>{`
+        .employee-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #dbeafe;
+          color: #1e40af;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+      `}</style>
     </div>
   );
 };
