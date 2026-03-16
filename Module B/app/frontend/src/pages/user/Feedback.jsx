@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Star, Plus, AlertCircle } from 'lucide-react';
-import { getOrdersForMember, getFeedbacksForMember, submitFeedback } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -10,8 +9,14 @@ const UserFeedback = () => {
     return user.memberId || 'MEM-001';
   }, []);
 
-  const [memberOrders] = useState(getOrdersForMember(currentMember));
-  const [feedbacks, setFeedbacks] = useState(getFeedbacksForMember(currentMember));
+  const [memberOrders, setMemberOrders] = useState([]);
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch member's orders and feedbacks from backend API
+    // setMemberOrders(fetchedOrders);
+    // setFeedbacks(fetchedFeedbacks);
+  }, [currentMember]);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState('');
   const [rating, setRating] = useState(5);
@@ -31,8 +36,10 @@ const UserFeedback = () => {
       return;
     }
 
-    submitFeedback(currentMember, selectedOrder, rating, comments);
-    setFeedbacks(getFeedbacksForMember(currentMember));
+    // TODO: Call API to submit feedback
+    // submitFeedback(currentMember, selectedOrder, rating, comments);
+    addToast('Feedback submitted (Placeholder)', 'success');
+    // refreshData();
     setSelectedOrder('');
     setRating(5);
     setComments('');

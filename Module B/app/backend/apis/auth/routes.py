@@ -1,21 +1,22 @@
-import psycopg2
-from db import get_connection
+from flask import Blueprint, request, jsonify
 import uuid
 from datetime import datetime, timedelta
+from db import get_connection
 
-def signup_user(data):
-    # data: {username, password, name, age, email, contact, address}
+auth_bp = Blueprint('auth', __name__)
+
+@auth_bp.route('/signup', methods=['POST'])
+def signup():
+    data = request.json
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # 1. Create User (Regular User role_id = 2)
         cur.execute(
             "INSERT INTO freshwash.users (username, password_hash, role_id) VALUES (%s, %s, 2) RETURNING user_id",
-            (data['username'], data['password']) # Note: Should be hashed in production
+            (data['username'], data['password'])
         )
         user_id = cur.fetchone()[0]
         
-        # 2. Create Member
         cur.execute(
             "INSERT INTO freshwash.member (name, age, email, contact_number, address) VALUES (%s, %s, %s, %s, %s) RETURNING member_id",
             (data['name'], data['age'], data['email'], data['contact'], data['address'])
@@ -23,29 +24,33 @@ def signup_user(data):
         member_id = cur.fetchone()[0]
         
         conn.commit()
-        return {"user_id": user_id, "member_id": member_id}
+        return jsonify({"message": "User created", "data": {"user_id": user_id, "member_id": member_id}}), 201
     except Exception as e:
         conn.rollback()
-        raise e
+        return jsonify({"error": str(e)}), 400
     finally:
         cur.close()
         conn.close()
 
-def login_user(username, password):
+@auth_bp.route('/login', methods=['POST'])
+def login():
+    data = request.json
+    username = data.get('username')
+    password = data.get('password')
+    
     conn = get_connection()
     cur = conn.cursor()
     try:
         cur.execute(
-            "SELECT u.user_id, u.role_id, r.role_name, m.member_id FROM freshwash.users u "
+            "SELECT u.user_id, r.role_name, m.member_id FROM freshwash.users u "
             "JOIN freshwash.roles r ON u.role_id = r.role_id "
-            "LEFT JOIN freshwash.member m ON m.email = (SELECT email FROM freshwash.member WHERE name = u.username OR email = u.username LIMIT 1) " # Simplified lookup
+            "LEFT JOIN freshwash.member m ON m.email = (SELECT email FROM freshwash.member WHERE name = u.username OR email = u.username LIMIT 1) "
             "WHERE u.username = %s AND u.password_hash = %s",
             (username, password)
         )
         user = cur.fetchone()
         if user:
-            user_id, role_id, role_name, member_id = user
-            # Create session
+            user_id, role_name, member_id = user
             token = str(uuid.uuid4())
             expires = datetime.now() + timedelta(hours=24)
             cur.execute(
@@ -53,13 +58,13 @@ def login_user(username, password):
                 (user_id, token, expires)
             )
             conn.commit()
-            return {
+            return jsonify({
                 "token": token,
-                "role": role_name.lower().replace('Regular User', 'user'), # frontend expects 'user'
+                "role": role_name.lower().replace('regular user', 'user'),
                 "member_id": member_id,
                 "username": username
-            }
-        return None
+            }), 200
+        return jsonify({"error": "Invalid credentials"}), 401
     finally:
         cur.close()
         conn.close()

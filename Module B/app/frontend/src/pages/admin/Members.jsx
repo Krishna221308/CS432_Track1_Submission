@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, UserPlus, Edit2, Trash2 } from 'lucide-react';
-import { getMembers, mockEmployees, getMemberAssignments, getAssignedEmployeeForMember, assignMemberToEmployee, deleteMember } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -14,8 +13,16 @@ const AdminMembers = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const addToast = useToast();
 
-  const members = useMemo(() => getMembers(), []);
-  const memberAssignments = useMemo(() => getMemberAssignments(), []);
+  const [members, setMembers] = useState([]);
+  const [memberAssignments, setMemberAssignments] = useState([]);
+  const [employees, setEmployees] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch members, assignments, and employees from backend API
+    // setMembers(fetchedMembers);
+    // setMemberAssignments(fetchedAssignments);
+    // setEmployees(fetchedEmployees);
+  }, []);
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
@@ -28,8 +35,10 @@ const AdminMembers = () => {
   }, [searchTerm, members]);
 
   const getAssignedEmployeeName = (memberId) => {
-    const employee = getAssignedEmployeeForMember(memberId);
-    return employee ? employee.employee_name : 'Unassigned';
+    // TODO: Find assigned employee from state/API
+    // const assignment = memberAssignments.find(a => a.member_id === memberId);
+    // const employee = employees.find(e => e.employee_id === assignment?.employee_id);
+    return 'Unassigned';
   };
 
   const handleAssignClick = (member) => {
@@ -41,8 +50,9 @@ const AdminMembers = () => {
 
   const handleSaveAssignment = () => {
     if (editingMember && selectedEmployee) {
-      assignMemberToEmployee(editingMember.member_id, selectedEmployee);
-      addToast('Member assigned successfully', 'success');
+      // TODO: Call API to assign member to employee
+      // assignMemberToEmployee(editingMember.member_id, selectedEmployee);
+      addToast('Member assigned (Placeholder)', 'success');
       setShowAssignModal(false);
       setEditingMember(null);
       setSelectedEmployee('');
@@ -56,8 +66,9 @@ const AdminMembers = () => {
 
   const handleConfirmDelete = () => {
     if (memberToDelete) {
-      deleteMember(memberToDelete.member_id);
-      addToast('Member deleted successfully', 'success');
+      // TODO: Call API to delete member
+      // deleteMember(memberToDelete.member_id);
+      addToast('Member deleted (Placeholder)', 'success');
       setShowDeleteConfirm(false);
       setMemberToDelete(null);
     }
@@ -192,7 +203,7 @@ const AdminMembers = () => {
                     onChange={(e) => setSelectedEmployee(e.target.value)}
                   >
                     <option value="">-- Select Employee --</option>
-                    {mockEmployees.map((employee) => (
+                    {employees.map((employee) => (
                       <option key={employee.employee_id} value={employee.employee_id}>
                         {employee.employee_name} ({employee.role})
                       </option>

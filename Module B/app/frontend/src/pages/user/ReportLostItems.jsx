@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
-import { getOrdersForMember, getLostItemsForMember, reportLostItem } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -10,8 +9,14 @@ const UserReportLostItems = () => {
     return user.memberId || 'MEM-001';
   }, []);
 
-  const [memberOrders] = useState(getOrdersForMember(currentMember));
-  const [lostItems, setLostItems] = useState(getLostItemsForMember(currentMember));
+  const [memberOrders, setMemberOrders] = useState([]);
+  const [lostItems, setLostItems] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch member's orders and lost items from backend API
+    // setMemberOrders(fetchedOrders);
+    // setLostItems(fetchedItems);
+  }, [currentMember]);
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState('');
   const [itemDescription, setItemDescription] = useState('');
@@ -23,8 +28,10 @@ const UserReportLostItems = () => {
       return;
     }
 
-    reportLostItem(currentMember, selectedOrder, itemDescription);
-    setLostItems(getLostItemsForMember(currentMember));
+    // TODO: Call API to report lost item
+    // reportLostItem(currentMember, selectedOrder, itemDescription);
+    addToast('Lost item reported (Placeholder)', 'success');
+    // refreshData();
     setSelectedOrder('');
     setItemDescription('');
     setShowReportForm(false);
@@ -56,7 +63,7 @@ const UserReportLostItems = () => {
         </div>
         <div className="stat-box">
           <h3>Compensation Requested</h3>
-          <p className="stat-value">${lostItems.reduce((sum, i) => sum + i.compensation_amount, 0).toFixed(2)}</p>
+          <p className="stat-value">₹{lostItems.reduce((sum, i) => sum + i.compensation_amount, 0).toFixed(2)}</p>
           <span className="stat-label">Total</span>
         </div>
       </div>
@@ -85,7 +92,7 @@ const UserReportLostItems = () => {
                 <option value="">-- Choose an Order --</option>
                 {memberOrders.map((order) => (
                   <option key={order.order_id} value={order.order_id}>
-                    {order.order_id} - {order.order_date} (${order.total_amount.toFixed(2)})
+                    {order.order_id} - {order.order_date} (₹{order.total_amount.toFixed(2)})
                   </option>
                 ))}
               </select>
@@ -139,7 +146,7 @@ const UserReportLostItems = () => {
                     <td>{item.item_description}</td>
                     <td>{item.reported_date}</td>
                     <td className="amount">
-                      ${item.compensation_amount > 0 ? item.compensation_amount.toFixed(2) : 'Pending'}
+                      {item.compensation_amount > 0 ? `₹${item.compensation_amount.toFixed(2)}` : 'Pending'}
                     </td>
                   </tr>
                 ))}

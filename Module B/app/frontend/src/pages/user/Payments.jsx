@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
-import { getPaymentsForMember } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const UserPayments = () => {
@@ -9,7 +8,12 @@ const UserPayments = () => {
     return user.memberId || 'MEM-001';
   }, []);
 
-  const [payments] = useState(getPaymentsForMember(currentMember));
+  const [payments, setPayments] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch member's payments from backend API
+    // setPayments(fetchedPayments);
+  }, [currentMember]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState('all');
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -61,17 +65,17 @@ const UserPayments = () => {
       <div className="stats-section">
         <div className="stat-box">
           <h3>Total Paid</h3>
-          <p className="stat-value" style={{ color: '#10b981' }}>${stats.paidAmount.toFixed(2)}</p>
+          <p className="stat-value" style={{ color: '#10b981' }}>₹{stats.paidAmount.toFixed(2)}</p>
           <span className="stat-label">Completed</span>
         </div>
         <div className="stat-box">
           <h3>Pending Payment</h3>
-          <p className="stat-value" style={{ color: '#f59e0b' }}>${stats.pendingAmount.toFixed(2)}</p>
+          <p className="stat-value" style={{ color: '#f59e0b' }}>₹{stats.pendingAmount.toFixed(2)}</p>
           <span className="stat-label">Action Needed</span>
         </div>
         <div className="stat-box">
           <h3>Total Amount</h3>
-          <p className="stat-value">${(stats.paidAmount + stats.pendingAmount).toFixed(2)}</p>
+          <p className="stat-value">₹{(stats.paidAmount + stats.pendingAmount).toFixed(2)}</p>
           <span className="stat-label">All Orders</span>
         </div>
         <div className="stat-box">

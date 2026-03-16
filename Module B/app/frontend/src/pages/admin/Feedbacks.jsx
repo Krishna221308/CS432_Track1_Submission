@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Star } from 'lucide-react';
-import { mockFeedbacks } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const AdminFeedbacks = () => {
-  const [feedbacks] = useState(mockFeedbacks);
+  const [feedbacks, setFeedbacks] = useState([]);
+  
+  useEffect(() => {
+    // TODO: Fetch feedbacks from backend API
+    // setFeedbacks(fetchedFeedbacks);
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRating, setFilterRating] = useState('all');
 

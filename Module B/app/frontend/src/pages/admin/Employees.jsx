@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, Edit, X } from 'lucide-react';
-import { getEmployees, addEmployee, updateEmployee, deleteEmployee } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -19,7 +18,8 @@ const AdminEmployees = () => {
   });
 
   useEffect(() => {
-    setEmployees(getEmployees());
+    // TODO: Fetch employees from backend API
+    // setEmployees(fetchedEmployees);
   }, []);
 
   const filteredEmployees = employees.filter((emp) => {
@@ -64,22 +64,25 @@ const AdminEmployees = () => {
     e.preventDefault();
 
     if (isEditing) {
-      updateEmployee(formData.employee_id, formData);
+      // TODO: Call API to update employee
+      // updateEmployee(formData.employee_id, formData);
       addToast('Employee updated successfully', 'success');
     } else {
-      addEmployee(formData);
+      // TODO: Call API to add employee
+      // addEmployee(formData);
       addToast('Employee added successfully', 'success');
     }
 
-    setEmployees(getEmployees());
+    // TODO: Refresh list after API call
+    // setEmployees(updatedList);
     handleCloseModal();
   };
 
   const handleDelete = (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
-      deleteEmployee(id);
-      setEmployees(getEmployees());
-      addToast('Employee deleted', 'info');
+      // TODO: Call API to delete employee
+      // deleteEmployee(id);
+      addToast('Employee deleted (Placeholder)', 'info');
     }
   };
 

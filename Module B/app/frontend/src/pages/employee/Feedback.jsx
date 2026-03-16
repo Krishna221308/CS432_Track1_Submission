@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Star } from 'lucide-react';
-import { getFeedbacksForAssignedOrders } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const EmployeeFeedback = () => {
@@ -10,7 +9,12 @@ const EmployeeFeedback = () => {
     return user.employeeId || 'EMP-001';
   }, []);
 
-  const [feedbacks] = useState(getFeedbacksForAssignedOrders(currentEmployee));
+  const [feedbacks, setFeedbacks] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch feedbacks for assigned orders from backend API
+    // setFeedbacks(fetchedFeedbacks);
+  }, [currentEmployee]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRating, setFilterRating] = useState('all');
 

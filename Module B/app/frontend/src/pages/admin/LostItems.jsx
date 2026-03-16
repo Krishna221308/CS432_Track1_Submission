@@ -1,10 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
-import { mockLostItems } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const AdminLostItems = () => {
-  const [lostItems] = useState(mockLostItems);
+  const [lostItems, setLostItems] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch lost items from backend API
+    // setLostItems(fetchedItems);
+  }, []);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
 

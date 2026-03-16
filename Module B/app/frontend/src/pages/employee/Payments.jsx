@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Edit2 } from 'lucide-react';
-import { getPaymentsForAssignedOrders, updatePayment } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -17,7 +16,8 @@ const EmployeePayments = () => {
   const addToast = useToast();
 
   const loadData = () => {
-    setPayments(getPaymentsForAssignedOrders(currentEmployee));
+    // TODO: Fetch assigned payments from backend API
+    // setPayments(fetchedPayments);
   };
 
   useEffect(() => {
@@ -40,9 +40,10 @@ const EmployeePayments = () => {
       payment_date: isPaid ? new Date().toISOString().split('T')[0] : null
     };
     
-    updatePayment(payment.payment_id, updates);
-    addToast(`Payment marked as ${isPaid ? 'Paid' : 'Pending'}`, 'success');
-    loadData();
+    // TODO: Call API to update payment status
+    // updatePayment(payment.payment_id, updates);
+    addToast(`Payment marked as ${isPaid ? 'Paid' : 'Pending'} (Placeholder)`, 'success');
+    // loadData();
     if (selectedPayment && selectedPayment.payment_id === payment.payment_id) {
       setSelectedPayment({ ...selectedPayment, ...updates });
     }
@@ -65,13 +66,13 @@ const EmployeePayments = () => {
       <div className="stats-section">
         <div className="stat-box">
           <h3>Total Revenue</h3>
-          <p className="stat-value">${totalRevenue.toFixed(2)}</p>
+          <p className="stat-value">₹{totalRevenue.toFixed(2)}</p>
           <span className="stat-label">Paid Payments</span>
         </div>
         <div className="stat-box">
           <h3>Pending Amount</h3>
           <p className="stat-value" style={{ color: '#f59e0b' }}>
-            ${pendingAmount.toFixed(2)}
+            ₹{pendingAmount.toFixed(2)}
           </p>
           <span className="stat-label">Awaiting Payment</span>
         </div>
@@ -116,7 +117,7 @@ const EmployeePayments = () => {
                   <tr key={payment.payment_id}>
                     <td className="payment-id">{payment.payment_id}</td>
                     <td>{payment.order_id}</td>
-                    <td className="amount">${(payment.payment_amount || 0).toFixed(2)}</td>
+                    <td className="amount">₹{(payment.payment_amount || 0).toFixed(2)}</td>
                     <td>{(payment.payment_mode || '').replace('_', ' ')}</td>
                     <td>{payment.payment_date || '—'}</td>
                     <td>
@@ -171,7 +172,7 @@ const EmployeePayments = () => {
                 </div>
                 <div className="detail-item">
                   <label>Amount</label>
-                  <p className="amount-highlight" style={{ fontSize: '1.2rem' }}>${(selectedPayment.payment_amount || 0).toFixed(2)}</p>
+                  <p className="amount-highlight" style={{ fontSize: '1.2rem' }}>₹{(selectedPayment.payment_amount || 0).toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Payment Mode</label>

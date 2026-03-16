@@ -1,7 +1,6 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Edit2 } from 'lucide-react';
-import { getServices, getPricing } from '../utils/mockData';
 import ThemeToggle from '../components/ThemeToggle';
 import '../styles/landing.css';
 
@@ -13,8 +12,14 @@ const serviceIcons = {
 };
 
 const Landing = () => {
-  const services = getServices();
-  const pricing = getPricing();
+  const [services, setServices] = useState([]);
+  const [pricing, setPricing] = useState([]);
+  
+  useEffect(() => {
+    // TODO: Fetch services and pricing from backend API
+    // setServices(fetchedServices);
+    // setPricing(fetchedPricing);
+  }, []);
   const pricingRef = useRef(null);
   const sectionRefs = useRef([]);
 

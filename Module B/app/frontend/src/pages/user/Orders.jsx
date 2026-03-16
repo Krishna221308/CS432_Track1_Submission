@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
-import { getOrdersForMember, getAssignedEmployeeForOrder } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const UserOrders = () => {
@@ -9,7 +8,12 @@ const UserOrders = () => {
     return user.memberId || 'MEM-001';
   }, []);
 
-  const [orders] = useState(getOrdersForMember(currentMember));
+  const [orders, setOrders] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch member's orders from backend API
+    // setOrders(fetchedOrders);
+  }, [currentMember]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -118,7 +122,7 @@ const UserOrders = () => {
                     <td className="order-id">{order.order_id}</td>
                     <td>{order.order_date}</td>
                     <td>{order.pickup_time}</td>
-                    <td className="amount">${order.total_amount.toFixed(2)}</td>
+                    <td className="amount">₹{order.total_amount.toFixed(2)}</td>
                     <td>
                       <span className={getStatusBadgeClass(order.order_status)}>
                         {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
@@ -126,7 +130,8 @@ const UserOrders = () => {
                     </td>
                     <td>
                       <span className="employee-badge">
-                        {getAssignedEmployeeForOrder(order.order_id)?.employee_name || 'Unassigned'}
+                        {/* TODO: Fetch handler info if needed */}
+                        Unassigned
                       </span>
                     </td>
                     <td>
@@ -178,7 +183,7 @@ const UserOrders = () => {
                 </div>
                 <div className="detail-item">
                   <label>Total Amount</label>
-                  <p className="amount-highlight">${selectedOrder.total_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">₹{selectedOrder.total_amount.toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Status</label>
@@ -195,7 +200,8 @@ const UserOrders = () => {
                   <label>Handler</label>
                   <p>
                     <span className="employee-badge">
-                      {getAssignedEmployeeForOrder(selectedOrder.order_id)?.employee_name || 'Unassigned'}
+                      {/* TODO: Fetch handler info if needed */}
+                      Unassigned
                     </span>
                   </p>
                 </div>

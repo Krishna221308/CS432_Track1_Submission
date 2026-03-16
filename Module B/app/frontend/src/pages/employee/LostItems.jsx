@@ -1,6 +1,5 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye, AlertTriangle } from 'lucide-react';
-import { getLostItemsForAssignedOrders } from '../../utils/mockData';
 import '../../styles/admin.css';
 
 const EmployeeLostItems = () => {
@@ -10,7 +9,12 @@ const EmployeeLostItems = () => {
     return user.employeeId || 'EMP-001';
   }, []);
 
-  const [lostItems] = useState(getLostItemsForAssignedOrders(currentEmployee));
+  const [lostItems, setLostItems] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch lost items for assigned orders from backend API
+    // setLostItems(fetchedItems);
+  }, [currentEmployee]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
 

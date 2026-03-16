@@ -199,12 +199,7 @@ const Login = () => {
         </div>
 
         <div className="login-footer">
-          <p>Test credentials:</p>
-          <ul>
-            <li><strong>Admin:</strong> username: admin, any password</li>
-            <li><strong>Employee:</strong> username: employee, any password</li>
-            <li><strong>User:</strong> username: user, any password</li>
-          </ul>
+          <p>© 2026 FreshWash Laundry Management</p>
         </div>
       </div>
     </div>

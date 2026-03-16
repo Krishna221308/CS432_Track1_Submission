@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
-import { getOrders, getAssignedEmployeeForOrder, addOrder, updateOrder, deleteOrder, getMembers } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -18,8 +17,9 @@ const AdminOrders = () => {
   const addToast = useToast();
 
   const loadData = () => {
-    setOrders(getOrders());
-    setMembers(getMembers());
+    // TODO: Fetch orders and members from backend API
+    // setOrders(fetchedOrders);
+    // setMembers(fetchedMembers);
   };
 
   useEffect(() => {
@@ -53,15 +53,12 @@ const AdminOrders = () => {
       return;
     }
     try {
-      addOrder({
-        member_id: newOrderData.member_id,
-        pickup_time: newOrderData.pickup_time,
-        total_amount: parseFloat(newOrderData.total_amount),
-      });
-      addToast('Order added successfully!', 'success');
+      // TODO: Call API to add order
+      // addOrder(newOrderData);
+      addToast('Order added (Placeholder)', 'success');
       setShowAddModal(false);
       setNewOrderData({ member_id: '', pickup_time: '', total_amount: '', order_status: 'pending' });
-      loadData();
+      // loadData();
     } catch (error) {
       addToast('Failed to add order', 'error');
     }
@@ -75,12 +72,13 @@ const AdminOrders = () => {
 
   const handleUpdateOrder = () => {
     if (editingOrder) {
-      updateOrder(editingOrder.order_id, { order_status: newOrderData.order_status });
-      addToast('Order status updated successfully!', 'success');
+      // TODO: Call API to update order status
+      // updateOrder(editingOrder.order_id, { order_status: newOrderData.order_status });
+      addToast('Order status updated (Placeholder)', 'success');
       setShowEditModal(false);
       setEditingOrder(null);
       setNewOrderData({ member_id: '', pickup_time: '', total_amount: '', order_status: 'pending' });
-      loadData();
+      // loadData();
     }
   };
 
@@ -91,11 +89,12 @@ const AdminOrders = () => {
 
   const handleConfirmDelete = () => {
     if (orderToDelete) {
-      deleteOrder(orderToDelete.order_id);
-      addToast('Order deleted successfully!', 'success');
+      // TODO: Call API to delete order
+      // deleteOrder(orderToDelete.order_id);
+      addToast('Order deleted (Placeholder)', 'success');
       setShowDeleteConfirm(false);
       setOrderToDelete(null);
-      loadData();
+      // loadData();
     }
   };
 
@@ -180,7 +179,7 @@ const AdminOrders = () => {
                     <td>{order.member_id}</td>
                     <td>{order.order_date}</td>
                     <td>{order.pickup_time}</td>
-                    <td className="amount">${(order.total_amount || 0).toFixed(2)}</td>
+                    <td className="amount">₹{(order.total_amount || 0).toFixed(2)}</td>
                     <td>
                       <span className={getStatusBadgeClass(order.order_status)}>
                         {(order.order_status || 'pending').charAt(0).toUpperCase() + (order.order_status || 'pending').slice(1)}
@@ -193,7 +192,8 @@ const AdminOrders = () => {
                     </td>
                     <td>
                       <span className="employee-badge">
-                        {getAssignedEmployeeForOrder(order.order_id)?.employee_name || 'Unassigned'}
+                        {/* TODO: Fetch assignment info */}
+                        Unassigned
                       </span>
                     </td>
                     <td>
@@ -296,13 +296,14 @@ const AdminOrders = () => {
                 </div>
                 <div className="detail-item">
                   <label>Amount</label>
-                  <p style={{ margin: 0, fontWeight: 600, color: '#10b981' }}>${(editingOrder.total_amount || 0).toFixed(2)}</p>
+                  <p style={{ margin: 0, fontWeight: 600, color: '#10b981' }}>₹{(editingOrder.total_amount || 0).toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Assigned Employee</label>
                   <p style={{ margin: 0 }}>
                     <span className="employee-badge">
-                      {getAssignedEmployeeForOrder(editingOrder.order_id)?.employee_name || 'Unassigned'}
+                      {/* TODO: Fetch assignment info */}
+                      Unassigned
                     </span>
                   </p>
                 </div>

@@ -1,11 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { ShoppingBag, Clock, CheckCircle, AlertCircle } from 'lucide-react';
 import DashboardCard from '../../components/DashboardCard';
-import {
-  getOrdersAssignedToEmployee,
-  getPaymentsForAssignedOrders,
-  getLostItemsForAssignedOrders,
-} from '../../utils/mockData';
 import '../../styles/dashboard.css';
 
 const EmployeeDashboard = () => {
@@ -15,9 +10,16 @@ const EmployeeDashboard = () => {
     return user.employeeId || 'EMP-001'; // Default to EMP-001 for demo
   }, []);
 
-  const assignedOrders = useMemo(() => getOrdersAssignedToEmployee(currentEmployee), [currentEmployee]);
-  const assignedPayments = useMemo(() => getPaymentsForAssignedOrders(currentEmployee), [currentEmployee]);
-  const assignedLostItems = useMemo(() => getLostItemsForAssignedOrders(currentEmployee), [currentEmployee]);
+  const [assignedOrders, setAssignedOrders] = useState([]);
+  const [assignedPayments, setAssignedPayments] = useState([]);
+  const [assignedLostItems, setAssignedLostItems] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch assigned orders, payments, and lost items from backend API
+    // setAssignedOrders(fetchedOrders);
+    // setAssignedPayments(fetchedPayments);
+    // setAssignedLostItems(fetchedLostItems);
+  }, [currentEmployee]);
 
   const pendingOrders = assignedOrders.filter((o) => o.order_status === 'pending').length;
   const processingOrders = assignedOrders.filter((o) => o.order_status === 'processing').length;
@@ -75,7 +77,7 @@ const EmployeeDashboard = () => {
                           {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
                         </span>
                       </td>
-                      <td>${order.total_amount.toFixed(2)}</td>
+                      <td>₹{order.total_amount.toFixed(2)}</td>
                     </tr>
                   ))
                 ) : (

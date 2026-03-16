@@ -1,10 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Pencil, Trash2, X } from 'lucide-react';
-import {
-  getServices, addService, updateService, deleteService,
-  getPricing, addPricingRule, updatePricingRule, deletePricingRule,
-  mockClothingTypes,
-} from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/dashboard.css';
 
@@ -31,9 +26,13 @@ const AdminServices = () => {
     refresh();
   }, []);
 
+  const [clothingTypes, setClothingTypes] = useState([]);
+
   const refresh = () => {
-    setServices(getServices());
-    setPricing(getPricing());
+    // TODO: Fetch services, pricing, and clothing types from backend API
+    // setServices(fetchedServices);
+    // setPricing(fetchedPricing);
+    // setClothingTypes(fetchedClothingTypes);
   };
 
   // ── Service handlers ──
@@ -55,21 +54,24 @@ const AdminServices = () => {
     e.preventDefault();
     const data = { service_name: sName, service_description: sDesc, base_price: parseFloat(sPrice) };
     if (editingService) {
-      updateService(editingService.service_id, data);
-      addToast('Service updated successfully', 'success');
+      // TODO: Call API to update service
+      // updateService(editingService.service_id, data);
+      addToast('Service updated (Placeholder)', 'success');
     } else {
-      addService(data);
-      addToast('Service added successfully', 'success');
+      // TODO: Call API to add service
+      // addService(data);
+      addToast('Service added (Placeholder)', 'success');
     }
     setShowServiceModal(false);
-    refresh();
+    // refresh();
   };
 
   const handleDeleteService = (id) => {
     if (confirm('Delete this service? Associated pricing rules will remain.')) {
-      deleteService(id);
-      addToast('Service deleted', 'info');
-      refresh();
+      // TODO: Call API to delete service
+      // deleteService(id);
+      addToast('Service deleted (Placeholder)', 'info');
+      // refresh();
     }
   };
 
@@ -77,7 +79,7 @@ const AdminServices = () => {
   const openAddPricing = () => {
     setEditingPricing(null);
     setPServiceId(services[0]?.service_id || '');
-    setPClothType(mockClothingTypes[0]?.type_name || '');
+    setPClothType(clothingTypes[0]?.type_name || '');
     setPPrice('');
     setShowPricingModal(true);
   };
@@ -94,21 +96,24 @@ const AdminServices = () => {
     e.preventDefault();
     const data = { service_id: pServiceId, cloth_type: pClothType, price: parseFloat(pPrice) };
     if (editingPricing) {
-      updatePricingRule(editingPricing.price_id, data);
-      addToast('Pricing rule updated', 'success');
+      // TODO: Call API to update pricing rule
+      // updatePricingRule(editingPricing.price_id, data);
+      addToast('Pricing rule updated (Placeholder)', 'success');
     } else {
-      addPricingRule(data);
-      addToast('Pricing rule added', 'success');
+      // TODO: Call API to add pricing rule
+      // addPricingRule(data);
+      addToast('Pricing rule added (Placeholder)', 'success');
     }
     setShowPricingModal(false);
-    refresh();
+    // refresh();
   };
 
   const handleDeletePricing = (id) => {
     if (confirm('Delete this pricing rule?')) {
-      deletePricingRule(id);
-      addToast('Pricing rule deleted', 'info');
-      refresh();
+      // TODO: Call API to delete pricing rule
+      // deletePricingRule(id);
+      addToast('Pricing rule deleted (Placeholder)', 'info');
+      // refresh();
     }
   };
 
@@ -243,7 +248,7 @@ const AdminServices = () => {
               </select>
               <label>Cloth Type</label>
               <select value={pClothType} onChange={(e) => setPClothType(e.target.value)} required>
-                {mockClothingTypes.map((ct) => (
+                {clothingTypes.map((ct) => (
                   <option key={ct.type_id} value={ct.type_name}>{ct.type_name}</option>
                 ))}
               </select>

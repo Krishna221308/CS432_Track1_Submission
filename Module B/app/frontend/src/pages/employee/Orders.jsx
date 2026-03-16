@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye, Plus, Edit2 } from 'lucide-react';
-import { getOrdersAssignedToEmployee, getAssignedEmployeeForOrder, getAssignedMembersForEmployee, getOrders, addOrder, updateOrder } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -29,8 +28,9 @@ const EmployeeOrders = () => {
   const addToast = useToast();
 
   const loadData = () => {
-    setOrders(getOrdersAssignedToEmployee(currentEmployee));
-    setAssignedMembers(getAssignedMembersForEmployee(currentEmployee));
+    // TODO: Fetch assigned orders and members from backend API
+    // setOrders(fetchedOrders);
+    // setAssignedMembers(fetchedMembers);
   };
 
   useEffect(() => {
@@ -56,15 +56,12 @@ const EmployeeOrders = () => {
     }
 
     try {
-      addOrder({
-        member_id: newOrderData.member_id,
-        pickup_time: newOrderData.pickup_time,
-        total_amount: parseFloat(newOrderData.total_amount),
-      });
-      addToast('Order added successfully!', 'success');
+      // TODO: Call API to add order
+      // addOrder(newOrderData);
+      addToast('Order added (Placeholder)', 'success');
       setShowAddOrderModal(false);
       setNewOrderData({ member_id: '', pickup_time: '', total_amount: '' });
-      loadData();
+      // loadData();
     } catch (error) {
       addToast('Failed to add order', 'error');
     }
@@ -78,12 +75,13 @@ const EmployeeOrders = () => {
 
   const handleUpdateStatus = () => {
     if (manageOrder && newStatus) {
-      updateOrder(manageOrder.order_id, { order_status: newStatus });
-      addToast('Order status updated successfully!', 'success');
+      // TODO: Call API to update order status
+      // updateOrder(manageOrder.order_id, { order_status: newStatus });
+      addToast('Order status updated (Placeholder)', 'success');
       setShowManageModal(false);
       setManageOrder(null);
       setNewStatus('');
-      loadData();
+      // loadData();
     }
   };
 
@@ -189,7 +187,7 @@ const EmployeeOrders = () => {
                     <td>{order.member_id}</td>
                     <td>{order.order_date}</td>
                     <td>{order.pickup_time}</td>
-                    <td className="amount">${order.total_amount.toFixed(2)}</td>
+                    <td className="amount">₹{order.total_amount.toFixed(2)}</td>
                     <td>
                       <span className={getStatusBadgeClass(order.order_status)}>
                         {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
@@ -197,7 +195,8 @@ const EmployeeOrders = () => {
                     </td>
                     <td>
                       <span className="employee-badge">
-                        {getAssignedEmployeeForOrder(order.order_id)?.employee_name || 'Unassigned'}
+                        {/* TODO: Fetch handler info if needed */}
+                        Unassigned
                       </span>
                     </td>
                     <td>
@@ -255,7 +254,7 @@ const EmployeeOrders = () => {
                 </div>
                 <div className="detail-item">
                   <label>Total Amount</label>
-                  <p className="amount-highlight">${manageOrder.total_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">₹{manageOrder.total_amount.toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Current Status</label>

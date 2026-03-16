@@ -1,5 +1,4 @@
-import React, { useMemo } from 'react';
-import { getOrdersForMember, getPaymentsForMember, getFeedbacksForMember, getLostItemsForMember } from '../../utils/mockData';
+import React, { useMemo, useState, useEffect } from 'react';
 import '../../styles/admin.css';
 
 const UserDashboard = () => {
@@ -8,10 +7,18 @@ const UserDashboard = () => {
     return user.memberId || 'MEM-001';
   }, []);
 
-  const memberOrders = useMemo(() => getOrdersForMember(currentMember), [currentMember]);
-  const memberPayments = useMemo(() => getPaymentsForMember(currentMember), [currentMember]);
-  const memberFeedbacks = useMemo(() => getFeedbacksForMember(currentMember), [currentMember]);
-  const memberLostItems = useMemo(() => getLostItemsForMember(currentMember), [currentMember]);
+  const [memberOrders, setMemberOrders] = useState([]);
+  const [memberPayments, setMemberPayments] = useState([]);
+  const [memberFeedbacks, setMemberFeedbacks] = useState([]);
+  const [memberLostItems, setMemberLostItems] = useState([]);
+
+  useEffect(() => {
+    // TODO: Fetch member's orders, payments, feedbacks, and lost items from backend API
+    // setMemberOrders(fetchedOrders);
+    // setMemberPayments(fetchedPayments);
+    // setMemberFeedbacks(fetchedFeedbacks);
+    // setMemberLostItems(fetchedLostItems);
+  }, [currentMember]);
 
   const totalSpent = useMemo(() => {
     return memberPayments
@@ -50,12 +57,12 @@ const UserDashboard = () => {
         </div>
         <div className="stat-box">
           <h3>Total Spent</h3>
-          <p className="stat-value">${totalSpent.toFixed(2)}</p>
+          <p className="stat-value">₹{totalSpent.toFixed(2)}</p>
           <span className="stat-label">Paid</span>
         </div>
         <div className="stat-box">
           <h3>Pending Payment</h3>
-          <p className="stat-value" style={{ color: '#f59e0b' }}>${pendingAmount.toFixed(2)}</p>
+          <p className="stat-value" style={{ color: '#f59e0b' }}>₹{pendingAmount.toFixed(2)}</p>
           <span className="stat-label">Action Needed</span>
         </div>
         <div className="stat-box">
@@ -92,7 +99,7 @@ const UserDashboard = () => {
                     <td className="order-id">{order.order_id}</td>
                     <td>{order.order_date}</td>
                     <td>{order.pickup_time}</td>
-                    <td className="amount">${order.total_amount.toFixed(2)}</td>
+                    <td className="amount">₹{order.total_amount.toFixed(2)}</td>
                     <td>
                       <span className={`badge ${order.order_status}`}>
                         {order.order_status.charAt(0).toUpperCase() + order.order_status.slice(1)}
