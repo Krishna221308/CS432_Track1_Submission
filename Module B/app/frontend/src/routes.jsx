@@ -21,6 +21,7 @@ import UserOrders from './pages/user/Orders';
 import UserPayments from './pages/user/Payments';
 import UserReportLostItems from './pages/user/ReportLostItems';
 import UserFeedback from './pages/user/Feedback';
+import Profile from './pages/common/Profile';
 import { isAuthenticated } from './utils/auth';
 
 const PrivateRoute = ({ children }) => {
@@ -52,6 +53,7 @@ const routes = [
       { path: 'employees', element: <AdminEmployees /> },
       { path: 'lost-items', element: <AdminLostItems /> },
       { path: 'services', element: <AdminServices /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
   {
@@ -67,6 +69,7 @@ const routes = [
       { path: 'payments', element: <EmployeePayments /> },
       { path: 'feedbacks', element: <EmployeeFeedback /> },
       { path: 'lost-items', element: <EmployeeLostItems /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
   {
@@ -82,6 +85,7 @@ const routes = [
       { path: 'payments', element: <UserPayments /> },
       { path: 'report-lost-items', element: <UserReportLostItems /> },
       { path: 'feedback', element: <UserFeedback /> },
+      { path: 'profile', element: <Profile /> },
     ],
   },
 ];

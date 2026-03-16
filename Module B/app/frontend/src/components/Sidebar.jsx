@@ -60,6 +60,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
           <NavLink
             key={item.name}
             to={item.path}
+            end={item.path === '/admin' || item.path === '/employee' || item.path === '/user'}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
             onClick={() => window.innerWidth < 1024 && toggleSidebar()}
           >

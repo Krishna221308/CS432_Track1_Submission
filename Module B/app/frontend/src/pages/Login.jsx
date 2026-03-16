@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, UserPlus, Lock, User, Eye, EyeOff } from 'lucide-react';
-import { login } from '../utils/auth';
+import { login, signup } from '../utils/auth';
+import { useToast } from '../components/Toast';
 import '../styles/login.css';
 
 const Login = () => {
@@ -10,20 +11,61 @@ const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
+  const [email, setEmail] = useState('');
+  const [contact, setContact] = useState('');
+  const [jobRole, setJobRole] = useState('');
+
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const addToast = useToast();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!username || !password || !role) {
-      setError('Please fill in all fields');
-      return;
-    }
 
-    const authenticatedRole = login(username, password);
-    if (authenticatedRole === 'admin') navigate('/admin');
-    else if (authenticatedRole === 'employee') navigate('/employee');
+    if (isLogin) {
+      if (!username || !password) {
+        setError('Please fill in all fields');
+        addToast('Please fill in all info', 'error');
+        return;
+      }
+
+      const authenticatedRole = login(username, password);
+      addToast('Login successful!', 'success');
+      redirectUser(authenticatedRole);
+    } else {
+      // Validate Signup
+      if (!username || !password || !name || !contact) {
+        setError('Required fields missing');
+        addToast('Required fields missing', 'error');
+        return;
+      }
+
+      const profileData = { username, password, role, name, contact };
+
+      if (role === 'user') {
+        profileData.age = age;
+        profileData.email = email;
+      } else if (role === 'employee') {
+        profileData.jobRole = jobRole;
+      }
+
+      try {
+        const signedUpRole = signup(profileData);
+        addToast('Account created successfully!', 'success');
+        redirectUser(signedUpRole);
+      } catch (err) {
+        setError(err.message);
+        addToast(err.message, 'error');
+      }
+    }
+  };
+
+  const redirectUser = (r) => {
+    if (r === 'admin') navigate('/admin');
+    else if (r === 'employee') navigate('/employee');
     else navigate('/user');
   };
 
@@ -47,6 +89,7 @@ const Login = () => {
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 placeholder="Enter username"
+                required
               />
             </div>
           </div>
@@ -59,6 +102,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                required
               />
               <button
                 type="button"
@@ -70,6 +114,75 @@ const Login = () => {
               </button>
             </div>
           </div>
+
+          {!isLogin && (
+            <>
+              <div className="form-group">
+                <label>Full Name</label>
+                <div className="input-affix">
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter full name"
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>Contact Number</label>
+                <div className="input-affix">
+                  <input
+                    type="tel"
+                    value={contact}
+                    onChange={(e) => setContact(e.target.value)}
+                    placeholder="Enter phone number"
+                    required
+                  />
+                </div>
+              </div>
+
+              {role === 'user' && (
+                <>
+                  <div className="form-group-row">
+                    <div className="form-group">
+                      <label>Age</label>
+                      <input
+                        type="number"
+                        value={age}
+                        onChange={(e) => setAge(e.target.value)}
+                        placeholder="Age"
+                      />
+                    </div>
+                    <div className="form-group">
+                      <label>Email</label>
+                      <input
+                        type="email"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        placeholder="Email address"
+                      />
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {role === 'employee' && (
+                <div className="form-group">
+                  <label>Job Role</label>
+                  <div className="input-affix">
+                    <input
+                      type="text"
+                      value={jobRole}
+                      onChange={(e) => setJobRole(e.target.value)}
+                      placeholder="e.g. Laundry Associate"
+                    />
+                  </div>
+                </div>
+              )}
+            </>
+          )}
 
           <div className="form-group">
             <label>Role</label>
@@ -99,7 +212,10 @@ const Login = () => {
             <button
               type="button"
               className="toggle-btn"
-              onClick={() => setIsLogin(!isLogin)}
+              onClick={() => {
+                setIsLogin(!isLogin);
+                setError('');
+              }}
             >
               {isLogin ? 'Create one' : 'Login here'}
             </button>

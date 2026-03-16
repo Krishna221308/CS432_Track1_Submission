@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { getOrdersForMember, getLostItemsForMember, reportLostItem } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const UserReportLostItems = () => {
@@ -14,11 +15,11 @@ const UserReportLostItems = () => {
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState('');
   const [itemDescription, setItemDescription] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const addToast = useToast();
 
   const handleReportItem = () => {
     if (!selectedOrder || !itemDescription.trim()) {
-      alert('Please select an order and describe the lost item');
+      addToast('Please select an order and describe the lost item', 'error');
       return;
     }
 
@@ -27,8 +28,7 @@ const UserReportLostItems = () => {
     setSelectedOrder('');
     setItemDescription('');
     setShowReportForm(false);
-    setSuccessMessage('Lost item reported successfully!');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    addToast('Lost item reported successfully!', 'success');
   };
 
   const getOrderTotal = (orderId) => {
@@ -43,12 +43,6 @@ const UserReportLostItems = () => {
         <p>Report any lost or damaged items from your orders</p>
       </header>
 
-      {successMessage && (
-        <div className="success-message">
-          <AlertCircle size={20} style={{ marginRight: '8px' }} />
-          {successMessage}
-        </div>
-      )}
 
       <div className="stats-section">
         <div className="stat-box">

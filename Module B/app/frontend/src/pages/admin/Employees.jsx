@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, Edit, X } from 'lucide-react';
 import { getEmployees, addEmployee, updateEmployee, deleteEmployee } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
+  const addToast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -63,8 +65,10 @@ const AdminEmployees = () => {
 
     if (isEditing) {
       updateEmployee(formData.employee_id, formData);
+      addToast('Employee updated successfully', 'success');
     } else {
       addEmployee(formData);
+      addToast('Employee added successfully', 'success');
     }
 
     setEmployees(getEmployees());
@@ -75,6 +79,7 @@ const AdminEmployees = () => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
       deleteEmployee(id);
       setEmployees(getEmployees());
+      addToast('Employee deleted', 'info');
     }
   };
 

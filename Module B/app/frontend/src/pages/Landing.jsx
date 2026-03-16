@@ -151,8 +151,6 @@ const Landing = () => {
               <p>Modernizing laundry management.</p>
             </div>
             <div className="footer-links">
-              <Link to="/login">Admin Portal</Link>
-              <Link to="/login">Employee Login</Link>
               <Link to="/login">Support</Link>
             </div>
           </div>

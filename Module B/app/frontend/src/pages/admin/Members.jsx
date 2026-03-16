@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, UserPlus, Edit2 } from 'lucide-react';
 import { mockMembers, mockEmployees, getMemberAssignments, getAssignedEmployeeForMember, assignMemberToEmployee } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminMembers = () => {
@@ -9,6 +10,7 @@ const AdminMembers = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
+  const addToast = useToast();
 
   const memberAssignments = useMemo(() => getMemberAssignments(), []);
 
@@ -37,6 +39,7 @@ const AdminMembers = () => {
   const handleSaveAssignment = () => {
     if (editingMember && selectedEmployee) {
       assignMemberToEmployee(editingMember.member_id, selectedEmployee);
+      addToast('Member assigned successfully', 'success');
       setShowAssignModal(false);
       setEditingMember(null);
       setSelectedEmployee('');

@@ -5,6 +5,7 @@ import {
   getPricing, addPricingRule, updatePricingRule, deletePricingRule,
   mockClothingTypes,
 } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/dashboard.css';
 
 const AdminServices = () => {
@@ -14,6 +15,7 @@ const AdminServices = () => {
   const [showPricingModal, setShowPricingModal] = useState(false);
   const [editingService, setEditingService] = useState(null);
   const [editingPricing, setEditingPricing] = useState(null);
+  const addToast = useToast();
 
   // Service form state
   const [sName, setSName] = useState('');
@@ -54,8 +56,10 @@ const AdminServices = () => {
     const data = { service_name: sName, service_description: sDesc, base_price: parseFloat(sPrice) };
     if (editingService) {
       updateService(editingService.service_id, data);
+      addToast('Service updated successfully', 'success');
     } else {
       addService(data);
+      addToast('Service added successfully', 'success');
     }
     setShowServiceModal(false);
     refresh();
@@ -64,6 +68,7 @@ const AdminServices = () => {
   const handleDeleteService = (id) => {
     if (confirm('Delete this service? Associated pricing rules will remain.')) {
       deleteService(id);
+      addToast('Service deleted', 'info');
       refresh();
     }
   };
@@ -90,8 +95,10 @@ const AdminServices = () => {
     const data = { service_id: pServiceId, cloth_type: pClothType, price: parseFloat(pPrice) };
     if (editingPricing) {
       updatePricingRule(editingPricing.price_id, data);
+      addToast('Pricing rule updated', 'success');
     } else {
       addPricingRule(data);
+      addToast('Pricing rule added', 'success');
     }
     setShowPricingModal(false);
     refresh();
@@ -100,6 +107,7 @@ const AdminServices = () => {
   const handleDeletePricing = (id) => {
     if (confirm('Delete this pricing rule?')) {
       deletePricingRule(id);
+      addToast('Pricing rule deleted', 'info');
       refresh();
     }
   };

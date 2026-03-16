@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Star, Plus, AlertCircle } from 'lucide-react';
 import { getOrdersForMember, getFeedbacksForMember, submitFeedback } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const UserFeedback = () => {
@@ -15,18 +16,18 @@ const UserFeedback = () => {
   const [selectedOrder, setSelectedOrder] = useState('');
   const [rating, setRating] = useState(5);
   const [comments, setComments] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [hoverRating, setHoverRating] = useState(0);
+  const addToast = useToast();
 
   const handleSubmitFeedback = () => {
     if (!selectedOrder) {
-      alert('Please select an order');
+      addToast('Please select an order', 'error');
       return;
     }
 
     // Check if feedback already exists for this order
     if (feedbacks.some((f) => f.order_id === selectedOrder)) {
-      alert('You have already provided feedback for this order');
+      addToast('You have already provided feedback for this order', 'warning');
       return;
     }
 
@@ -36,8 +37,7 @@ const UserFeedback = () => {
     setRating(5);
     setComments('');
     setShowFeedbackForm(false);
-    setSuccessMessage('Thank you for your feedback!');
-    setTimeout(() => setSuccessMessage(''), 3000);
+    addToast('Thank you for your feedback!', 'success');
   };
 
   const averageRating = useMemo(() => {
@@ -57,12 +57,6 @@ const UserFeedback = () => {
         <p>Share your experience with our service</p>
       </header>
 
-      {successMessage && (
-        <div className="success-message">
-          <AlertCircle size={20} style={{ marginRight: '8px' }} />
-          {successMessage}
-        </div>
-      )}
 
       <div className="stats-section">
         <div className="stat-box">

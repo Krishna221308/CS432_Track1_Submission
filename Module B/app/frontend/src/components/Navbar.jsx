@@ -1,9 +1,23 @@
 import React from 'react';
-import { Menu, Bell, LogOut } from 'lucide-react';
-import { getUser, logout } from '../utils/auth';
+import { useNavigate } from 'react-router-dom';
+import { Menu, Bell, LogOut, User as UserIcon } from 'lucide-react';
+import { getUser, getRole, logout } from '../utils/auth';
+import { useToast } from './Toast';
 
 const Navbar = ({ toggleSidebar }) => {
   const username = getUser();
+  const role = getRole();
+  const addToast = useToast();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    addToast('Logged out successfully', 'info');
+    setTimeout(() => logout(), 500);
+  };
+
+  const handleProfileClick = () => {
+    navigate(`/${role}/profile`);
+  };
 
   return (
     <nav className="navbar">
@@ -20,10 +34,13 @@ const Navbar = ({ toggleSidebar }) => {
           <span className="notification-dot"></span>
         </div>
         <div className="user-profile">
-          <div className="user-info">
+          <div className="user-info" onClick={handleProfileClick} style={{ cursor: 'pointer' }} title="View Profile">
+            <div className="user-avatar-sm">
+              <UserIcon size={16} />
+            </div>
             <span className="username">{username || 'User'}</span>
           </div>
-          <button className="logout-btn" onClick={logout} title="Logout">
+          <button className="logout-btn" onClick={handleLogout} title="Logout">
             <LogOut size={20} />
           </button>
         </div>
