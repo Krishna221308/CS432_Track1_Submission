@@ -20,10 +20,10 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Dashboard', path: '/admin', icon: <LayoutDashboard size={20} /> },
     { name: 'Orders', path: '/admin/orders', icon: <ShoppingBag size={20} /> },
     { name: 'Customers', path: '/admin/customers', icon: <Users size={20} /> },
-    { name: 'Services', path: '/admin/services', icon: <Layers size={20} /> },
+    { name: 'Payments', path: '/admin/payments', icon: <BarChart3 size={20} /> },
     { name: 'Employees', path: '/admin/employees', icon: <Users size={20} /> },
-    { name: 'Reports', path: '/admin/reports', icon: <BarChart3 size={20} /> },
-    { name: 'Settings', path: '/admin/settings', icon: <Settings size={20} /> },
+    { name: 'Feedbacks', path: '/admin/feedbacks', icon: <Layers size={20} /> },
+    { name: 'Lost Items', path: '/admin/lost-items', icon: <Truck size={20} /> },
   ];
 
   const employeeMenu = [

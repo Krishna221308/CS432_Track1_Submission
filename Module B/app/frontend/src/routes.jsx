@@ -3,7 +3,12 @@ import { Navigate } from 'react-router-dom';
 import Login from './pages/Login';
 import Landing from './pages/Landing';
 import DashboardLayout from './layouts/DashboardLayout';
-import AdminDashboard from './pages/AdminDashboard';
+import AdminDashboard from './pages/admin/Dashboard';
+import AdminOrders from './pages/admin/Orders';
+import AdminPayments from './pages/admin/Payments';
+import AdminFeedbacks from './pages/admin/Feedbacks';
+import AdminEmployees from './pages/admin/Employees';
+import AdminLostItems from './pages/admin/LostItems';
 import EmployeeDashboard from './pages/EmployeeDashboard';
 import UserDashboard from './pages/UserDashboard';
 import { isAuthenticated } from './utils/auth';
@@ -30,6 +35,11 @@ const routes = [
     ),
     children: [
       { path: '', element: <AdminDashboard /> },
+      { path: 'orders', element: <AdminOrders /> },
+      { path: 'payments', element: <AdminPayments /> },
+      { path: 'feedbacks', element: <AdminFeedbacks /> },
+      { path: 'employees', element: <AdminEmployees /> },
+      { path: 'lost-items', element: <AdminLostItems /> },
     ],
   },
   {
