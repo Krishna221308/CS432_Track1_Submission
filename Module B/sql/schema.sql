@@ -80,7 +80,7 @@ CREATE INDEX idx_users_username ON freshwash.users (username);
 
 -- Seed sample users (passwords are SHA-256 placeholders – replace in production)
 INSERT INTO freshwash.users (user_id, username, password_hash, role_id) VALUES
-    (1, 'admin_fw',      '$2b$12$adminHashPlaceholder000000000000000000000000000000000', 1),
+    (1, 'admin',         'nimda', 1),
     (2, 'aarav.patel',   '$2b$12$userHashPlaceholderAarav00000000000000000000000000000', 2),
     (3, 'vivaan.singh',  '$2b$12$userHashPlaceholderVivaan0000000000000000000000000000', 2);
 

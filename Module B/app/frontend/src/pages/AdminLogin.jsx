@@ -16,22 +16,24 @@ const AdminLogin = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!username || !password) {
-      setError('Please fill in all fields');
-      addToast('Credentials required', 'error');
-      return;
-    }
+    const performLogin = async () => {
+      try {
+        const authenticatedRole = await login(username, password);
+        
+        if (authenticatedRole === 'admin') {
+          addToast('Welcome back, Admin!', 'success');
+          navigate('/admin');
+        } else {
+          setError('Unauthorized access: Not an admin');
+          addToast('Invalid admin permissions', 'error');
+        }
+      } catch (err) {
+        setError(err.message);
+        addToast(err.message, 'error');
+      }
+    };
 
-    // Force role to admin for this login page
-    const authenticatedRole = login(username, password, 'admin');
-    
-    if (authenticatedRole === 'admin') {
-      addToast('Welcome back, Admin!', 'success');
-      navigate('/admin');
-    } else {
-      setError('Unauthorized access');
-      addToast('Invalid admin credentials', 'error');
-    }
+    performLogin();
   };
 
   return (
