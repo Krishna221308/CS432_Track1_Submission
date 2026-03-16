@@ -33,7 +33,7 @@ SET search_path TO freshwash, public;
 
 
 -- =============================================================================
--- SECTION 1: RBAC – ROLES & USERS
+-- SECTION 1: MASTER DATA - CORE LOOKUPS & STAFF
 -- Independent master tables; no external FK dependencies.
 -- =============================================================================
 
@@ -56,50 +56,7 @@ INSERT INTO freshwash.roles (role_id, role_name, description) VALUES
     (2, 'Regular User', 'Limited access: view own orders and profile only.');
 
 
--- 1b. Users  ---------------------------------------------------------------
--- Stores application login credentials linked to a role.
-CREATE TABLE freshwash.users (
-    user_id         SERIAL          PRIMARY KEY,
-    username        VARCHAR(100)    NOT NULL UNIQUE,
-    password_hash   VARCHAR(255)    NOT NULL,           -- bcrypt / Argon2 hash; never plain-text
-    role_id         INT             NOT NULL,
-    is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
-    created_at      TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login_at   TIMESTAMPTZ,
-    member_id       INT,
-    employee_id     INT,
-
-    CONSTRAINT fk_users_role
-        FOREIGN KEY (role_id) REFERENCES freshwash.roles (role_id)
-        ON DELETE RESTRICT,
-    CONSTRAINT fk_users_member
-        FOREIGN KEY (member_id) REFERENCES freshwash.member (member_id)
-        ON DELETE SET NULL,
-    CONSTRAINT fk_users_employee
-        FOREIGN KEY (employee_id) REFERENCES freshwash.employee (employee_id)
-        ON DELETE SET NULL
-);
-
-COMMENT ON TABLE  freshwash.users IS 'Application user accounts with hashed passwords and RBAC role assignment.';
-COMMENT ON COLUMN freshwash.users.password_hash IS 'Store only bcrypt/Argon2 hashes – NEVER plain text passwords.';
-
--- Index: fast lookup by username at login
-CREATE INDEX idx_users_username ON freshwash.users (username);
-
--- Seed sample users (passwords are SHA-256 placeholders – replace in production)
--- Now includes member_id to link login accounts to profiles
-INSERT INTO freshwash.users (user_id, username, password_hash, role_id, member_id) VALUES
-    (1, 'admin',         'nimda',                                                       1, NULL),
-    (2, 'aarav.patel',   '$2b$12$userHashPlaceholderAarav00000000000000000000000000000', 2, 1),
-    (3, 'vivaan.singh',  '$2b$12$userHashPlaceholderVivaan0000000000000000000000000000', 2, 2);
-
-
--- =============================================================================
--- SECTION 2: CORE LAUNDRY MASTER TABLES
--- Independent tables that other entities reference.
--- =============================================================================
-
--- 2a. Clothing Type  -------------------------------------------------------
+-- 1b. Clothing Type  -------------------------------------------------------
 CREATE TABLE freshwash.clothing_type (
     type_id          SERIAL         PRIMARY KEY,
     type_name        VARCHAR(50)    NOT NULL,
@@ -121,7 +78,7 @@ INSERT INTO freshwash.clothing_type (type_id, type_name, wash_instruction) VALUE
     (10, 'Silk Scarf',      'Hand wash cold');
 
 
--- 2b. Service  -------------------------------------------------------------
+-- 1c. Service  -------------------------------------------------------------
 CREATE TABLE freshwash.service (
     service_id          SERIAL          PRIMARY KEY,
     service_name        VARCHAR(50)     NOT NULL UNIQUE,
@@ -147,7 +104,7 @@ INSERT INTO freshwash.service (service_id, service_name, service_description, ba
     (10, 'Leather Cleaning', 'Professional care for leather garments',                  250.00);
 
 
--- 2c. Employee  ------------------------------------------------------------
+-- 1d. Employee  ------------------------------------------------------------
 CREATE TABLE freshwash.employee (
     employee_id     SERIAL          PRIMARY KEY,
     employee_name   VARCHAR(100)    NOT NULL,
@@ -171,7 +128,7 @@ INSERT INTO freshwash.employee (employee_id, employee_name, role, contact_number
     (10, 'Rahul Mehta',         'Inventory Supervisor', '9988776566', '2024-06-01');
 
 
--- 2d. Member  --------------------------------------------------------------
+-- 1e. Member  --------------------------------------------------------------
 -- MySQL: member_chk_1 → age >= 18
 CREATE TABLE freshwash.member (
     member_id       SERIAL          PRIMARY KEY,
@@ -205,8 +162,51 @@ INSERT INTO freshwash.member (member_id, name, age, email, contact_number, addre
 
 
 -- =============================================================================
--- SECTION 3: PRICING JUNCTION TABLE
--- Depends on: service, clothing_type
+-- SECTION 2: RBAC - USERS
+-- Depends on: roles, member, employee
+-- =============================================================================
+
+-- 2a. Users  ---------------------------------------------------------------
+-- Stores application login credentials linked to a role and a profile.
+CREATE TABLE freshwash.users (
+    user_id         SERIAL          PRIMARY KEY,
+    username        VARCHAR(100)    NOT NULL UNIQUE,
+    password_hash   VARCHAR(255)    NOT NULL,           -- bcrypt / Argon2 hash; never plain-text
+    role_id         INT             NOT NULL,
+    is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
+    created_at      TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login_at   TIMESTAMPTZ,
+    member_id       INT,
+    employee_id     INT,
+
+    CONSTRAINT fk_users_role
+        FOREIGN KEY (role_id) REFERENCES freshwash.roles (role_id)
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_users_member
+        FOREIGN KEY (member_id) REFERENCES freshwash.member (member_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_users_employee
+        FOREIGN KEY (employee_id) REFERENCES freshwash.employee (employee_id)
+        ON DELETE SET NULL
+);
+
+COMMENT ON TABLE  freshwash.users IS 'Application user accounts with hashed passwords and RBAC role assignment.';
+COMMENT ON COLUMN freshwash.users.password_hash IS 'Store only bcrypt/Argon2 hashes – NEVER plain text passwords.';
+
+-- Index: fast lookup by username at login
+CREATE INDEX idx_users_username ON freshwash.users (username);
+
+-- Seed sample users (passwords are plain text for simplicity in this assignments)
+-- Now includes member_id to link login accounts to profiles
+INSERT INTO freshwash.users (user_id, username, password_hash, role_id, member_id) VALUES
+    (1, 'admin',         'nimda',                                                       1, NULL),
+    (2, 'aarav.patel',   '$2b$12$userHashPlaceholderAarav00000000000000000000000000000', 2, 1),
+    (3, 'vivaan.singh',  '$2b$12$userHashPlaceholderVivaan0000000000000000000000000000', 2, 2);
+
+
+-- =============================================================================
+-- SECTION 3: TRANSACTIONAL MASTER TABLES
+-- Depends on master tables
 -- =============================================================================
 
 -- 3a. Price  ---------------------------------------------------------------
@@ -249,7 +249,7 @@ INSERT INTO freshwash.price (price_id, service_id, type_id, price) VALUES
 
 
 -- =============================================================================
--- SECTION 4: TRANSACTIONAL TABLES
+-- SECTION 4: TRANSACTIONAL DATA
 -- Depend on parent master tables (member, service, employee).
 -- =============================================================================
 
@@ -309,6 +309,7 @@ CREATE TABLE freshwash.order_service (
         ON DELETE CASCADE,
     CONSTRAINT fk_order_service_service
         FOREIGN KEY (service_id) REFERENCES freshwash.service (service_id)
+        ON DELETE CASCADE
 );
 
 COMMENT ON TABLE freshwash.order_service IS 'Line items: which services were applied to a given order.';
@@ -374,6 +375,7 @@ CREATE TABLE freshwash.order_assignment (
         ON DELETE CASCADE,
     CONSTRAINT fk_order_assignment_employee
         FOREIGN KEY (employee_id) REFERENCES freshwash.employee (employee_id)
+        ON DELETE CASCADE
 );
 
 COMMENT ON TABLE freshwash.order_assignment IS 'Maps employees to orders with their operational role for that task.';
@@ -469,9 +471,11 @@ CREATE TABLE freshwash.feedback (
     CONSTRAINT chk_feedback_rating CHECK (rating BETWEEN 1 AND 5),
 
     CONSTRAINT fk_feedback_member
-        FOREIGN KEY (member_id) REFERENCES freshwash.member (member_id),
+        FOREIGN KEY (member_id) REFERENCES freshwash.member (member_id)
+        ON DELETE CASCADE,
     CONSTRAINT fk_feedback_order
         FOREIGN KEY (order_id)  REFERENCES freshwash.laundry_order (order_id)
+        ON DELETE CASCADE
 );
 
 COMMENT ON TABLE freshwash.feedback IS 'Customer satisfaction ratings (1-5) and comments per order.';
@@ -523,8 +527,8 @@ INSERT INTO freshwash.lost_item (lost_id, order_id, item_description, reported_d
 
 
 -- =============================================================================
--- SECTION 5: SECURITY TABLES
--- Depend on: users
+-- SECTION 5: SECURITY & ACCESS
+-- Depends on: users
 -- =============================================================================
 
 -- 5a. Sessions  ------------------------------------------------------------
