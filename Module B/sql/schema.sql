@@ -66,10 +66,18 @@ CREATE TABLE freshwash.users (
     is_active       BOOLEAN         NOT NULL DEFAULT TRUE,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_login_at   TIMESTAMPTZ,
+    member_id       INT,
+    employee_id     INT,
 
     CONSTRAINT fk_users_role
         FOREIGN KEY (role_id) REFERENCES freshwash.roles (role_id)
-        ON DELETE RESTRICT
+        ON DELETE RESTRICT,
+    CONSTRAINT fk_users_member
+        FOREIGN KEY (member_id) REFERENCES freshwash.member (member_id)
+        ON DELETE SET NULL,
+    CONSTRAINT fk_users_employee
+        FOREIGN KEY (employee_id) REFERENCES freshwash.employee (employee_id)
+        ON DELETE SET NULL
 );
 
 COMMENT ON TABLE  freshwash.users IS 'Application user accounts with hashed passwords and RBAC role assignment.';
