@@ -1,8 +1,21 @@
 /* Landing Page Styles */
 .landing-page {
-  background-color: white;
+  background-color: var(--bg-main);
   color: var(--text-main);
   overflow-x: hidden;
+  position: relative;
+}
+
+.landing-page::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.08), transparent 40%),
+              radial-gradient(circle at 20% 80%, rgba(129, 140, 248, 0.05), transparent 40%);
+  pointer-events: none;
 }
 
 .container {
@@ -18,10 +31,16 @@
   position: fixed;
   top: 0;
   width: 100%;
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(10px);
+  background: var(--bg-glass);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   z-index: 1000;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
+}
+
+body.light-theme .landing-nav {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
 .landing-nav .container {
@@ -43,28 +62,41 @@
   gap: 2rem;
 }
 
-.login-link {
-  font-weight: 600;
-  color: var(--text-muted);
-  transition: color 0.2s;
-}
-
-.login-link:hover { color: var(--primary); }
-
+.login-link,
 .cta-button {
-  background: var(--primary);
+  padding: 0.75rem 1.75rem;
+  border-radius: 14px;
+  font-weight: 800;
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
-  padding: 0.6rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
-  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px var(--primary-glow);
 }
-.cta-button:hover { background: var(--primary-dark); }
+
+.login-link:hover,
+.cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px var(--primary-glow);
+  filter: brightness(1.1);
+  color: white;
+}
+
+.login-link:active,
+.cta-button:active {
+  transform: translateY(0);
+}
+
 
 /* ── Hero ── */
 .hero {
-  padding: 160px 0 100px;
-  background: radial-gradient(circle at top right, #eff6ff 0%, white 50%);
+  padding: 180px 0 120px;
+  position: relative;
 }
 
 .hero-content {
@@ -97,26 +129,39 @@
 }
 
 .primary-btn {
-  background: var(--primary);
+  background: linear-gradient(135deg, var(--primary), var(--accent));
   color: white;
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-weight: 700;
-  box-shadow: 0 4px 14px rgba(30, 64, 175, 0.3);
-  transition: transform 0.2s;
+  padding: 1rem 2.5rem;
+  border-radius: 14px;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(56, 189, 248, 0.4);
+  transition: all var(--transition-fast);
+  text-transform: uppercase;
+  font-size: 0.875rem;
+  letter-spacing: 0.05em;
 }
 
-.primary-btn:hover { transform: translateY(-2px); }
+.primary-btn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 15px 35px rgba(56, 189, 248, 0.6);
+}
 
 .secondary-btn {
-  background: white;
-  border: 1px solid var(--border);
-  padding: 1rem 2rem;
-  border-radius: 12px;
-  font-weight: 600;
-  transition: border-color 0.2s;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--glass-border);
+  color: white;
+  padding: 1rem 2.5rem;
+  border-radius: 14px;
+  font-weight: 700;
+  transition: all var(--transition-fast);
+  backdrop-filter: blur(5px);
 }
-.secondary-btn:hover { border-color: var(--primary-light); }
+
+.secondary-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--primary);
+  transform: translateY(-2px);
+}
 
 /* ── Services ── */
 .services { padding: 100px 0; }
@@ -145,15 +190,35 @@
 
 .service-card {
   padding: 2.5rem;
-  border-radius: 20px;
-  border: 1px solid var(--border);
-  transition: all 0.3s;
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  transition: all var(--transition-fast);
+  position: relative;
+  overflow: hidden;
 }
 
 .service-card:hover {
-  border-color: var(--primary-light);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-5px);
+  border-color: var(--primary);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+  transform: translateY(-10px);
+}
+
+.service-card::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--primary), var(--accent));
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.service-card:hover::after {
+  opacity: 1;
 }
 
 .service-icon {
@@ -188,17 +253,19 @@
 /* ── Pricing Table ── */
 .pricing {
   padding: 100px 0;
-  background-color: var(--bg-main);
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
   border-radius: 40px;
-  margin: 0 1rem;
+  margin: 0 1.5rem;
 }
 
 .pricing-table-wrapper {
   overflow-x: auto;
-  border-radius: 16px;
-  border: 1px solid var(--border);
-  box-shadow: var(--shadow);
-  background: white;
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-lg);
+  background: rgba(15, 23, 42, 0.5);
 }
 
 .pricing-table {
@@ -208,7 +275,7 @@
 }
 
 .pricing-table thead {
-  background: var(--primary);
+  background: linear-gradient(90deg, var(--primary-dark), var(--primary));
 }
 
 .pricing-table th {
@@ -227,10 +294,11 @@
 }
 
 .pricing-table td {
-  padding: 1rem 1.25rem;
+  padding: 1.25rem 1.5rem;
   text-align: center;
   font-size: 0.95rem;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--glass-border);
+  color: var(--text-main);
 }
 
 .pricing-table tbody tr:last-child td {
@@ -238,7 +306,7 @@
 }
 
 .pricing-table tbody tr:hover {
-  background-color: #f0f9ff;
+  background-color: rgba(255, 255, 255, 0.03);
 }
 
 .cloth-type-cell {

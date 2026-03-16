@@ -2,6 +2,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Truck, CheckCircle } from 'lucide-react';
 import { getServices, getPricing } from '../utils/mockData';
+import ThemeToggle from '../components/ThemeToggle';
 import '../styles/landing.css';
 
 const serviceIcons = {
@@ -31,6 +32,7 @@ const Landing = () => {
           <span className="logo">FreshWash</span>
           <div className="nav-links">
             <Link to="/login" className="login-link">Login</Link>
+            <ThemeToggle />
             <Link to="/login" state={{ mode: 'signup' }} className="cta-button">Sign Up</Link>
           </div>
         </div>
