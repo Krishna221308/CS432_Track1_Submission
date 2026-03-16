@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogIn, Lock, User } from 'lucide-react';
+import { LogIn, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { login } from '../utils/auth';
 import '../styles/login.css';
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [role, setRole] = useState('user');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!username || !password) {
+    if (!username || !password || !role) {
       setError('Please fill in all fields');
       return;
     }
 
-    const role = login(username, password);
-    if (role === 'admin') navigate('/admin');
-    else if (role === 'employee') navigate('/employee');
+    const authenticatedRole = login(username, password);
+    if (authenticatedRole === 'admin') navigate('/admin');
+    else if (authenticatedRole === 'employee') navigate('/employee');
     else navigate('/user');
   };
 
@@ -50,14 +52,38 @@ const Login = () => {
 
           <div className="form-group">
             <label>Password</label>
-            <div className="input-affix">
+            <div className="input-affix password-input">
               <Lock size={18} className="icon" />
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
               />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                title={showPassword ? 'Hide password' : 'Show password'}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label>Role</label>
+            <div className="input-affix">
+              <Lock size={18} className="icon" />
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="role-select"
+              >
+                <option value="user">User / Member</option>
+                <option value="employee">Employee</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
           </div>
 
@@ -69,7 +95,12 @@ const Login = () => {
         </form>
 
         <div className="login-footer">
-          <p>Test roles: admin, employee, user (any password)</p>
+          <p>Test credentials:</p>
+          <ul>
+            <li><strong>Admin:</strong> username: admin, any password</li>
+            <li><strong>Employee:</strong> username: employee, any password</li>
+            <li><strong>User:</strong> username: user, any password</li>
+          </ul>
         </div>
       </div>
     </div>

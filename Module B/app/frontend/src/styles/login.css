@@ -81,7 +81,8 @@
   color: var(--text-muted);
 }
 
-.input-affix input {
+.input-affix input,
+.input-affix select {
   width: 100%;
   padding: 0.75rem 1rem 0.75rem 2.5rem;
   border: 1px solid var(--border);
@@ -90,10 +91,42 @@
   transition: all 0.2s;
 }
 
-.input-affix input:focus {
+.input-affix input:focus,
+.input-affix select:focus {
   outline: none;
   border-color: var(--primary-light);
   box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.password-input {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  transition: color 0.2s;
+}
+
+.password-toggle:hover {
+  color: var(--primary);
+}
+
+.role-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 35px;
+  background-size: 18px;
 }
 
 .login-btn {
@@ -122,4 +155,32 @@
   text-align: center;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+.login-footer p {
+  margin: 0 0 0.75rem 0;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.login-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  text-align: left;
+  background: #f9fafb;
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  line-height: 1.6;
+}
+
+.login-footer li {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.login-footer li strong {
+  color: var(--primary);
+  font-weight: 600;
 }
