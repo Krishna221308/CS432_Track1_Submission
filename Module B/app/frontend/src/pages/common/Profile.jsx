@@ -9,7 +9,43 @@ const Profile = () => {
 
   useEffect(() => {
     const storedUser = JSON.parse(localStorage.getItem('user') || '{}');
-    setUser(storedUser);
+    const memberId = storedUser.memberId;
+
+    if (memberId && storedUser.role === 'user') {
+      const fetchProfile = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/user/profile/${memberId}`);
+          const data = await response.json();
+          if (response.ok) {
+            setUser({ ...storedUser, ...data });
+          } else {
+            setUser(storedUser);
+          }
+        } catch (err) {
+          console.error('Error fetching profile:', err);
+          setUser(storedUser);
+        }
+      };
+      fetchProfile();
+    } else if (storedUser.employeeId && storedUser.role === 'employee') {
+      const fetchEmployeeProfile = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/api/user/profile/employee/${storedUser.employeeId}`);
+          const data = await response.json();
+          if (response.ok) {
+            setUser({ ...storedUser, ...data });
+          } else {
+            setUser(storedUser);
+          }
+        } catch (err) {
+          console.error('Error fetching employee profile:', err);
+          setUser(storedUser);
+        }
+      };
+      fetchEmployeeProfile();
+    } else {
+      setUser(storedUser);
+    }
   }, []);
 
   if (!user) return <div className="dashboard-view">Loading...</div>;
@@ -50,7 +86,7 @@ const Profile = () => {
               <Hash size={16} />
               <span>Account ID</span>
             </div>
-            <div className="detail-value">{user.id || user.memberId || user.employeeId || 'N/A'}</div>
+            <div className="detail-value">{user.memberId || user.employeeId || 'N/A'}</div>
           </div>
 
           <div className="detail-item">

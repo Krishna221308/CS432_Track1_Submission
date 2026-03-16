@@ -2,20 +2,33 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Star, Plus, AlertCircle } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
 
 const UserFeedback = () => {
-  const currentMember = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.memberId || 'MEM-001';
-  }, []);
+  const currentMember = getMemberId();
 
   const [memberOrders, setMemberOrders] = useState([]);
   const [feedbacks, setFeedbacks] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch member's orders and feedbacks from backend API
-    // setMemberOrders(fetchedOrders);
-    // setFeedbacks(fetchedFeedbacks);
+    if (!currentMember) return;
+
+    const fetchData = async () => {
+      try {
+        const ordersRes = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const ordersData = await ordersRes.json();
+        if (ordersRes.ok) setMemberOrders(ordersData);
+
+        // Note: Currently no specific API for member feedbacks list in the refactor, 
+        // normally we'd fetch these from a user-specific feedback endpoint.
+        // For now, we'll fetch from a general list or just use an empty array.
+        // Assuming we might add GET /api/user/feedbacks/%member_id%
+      } catch (err) {
+        console.error('Error fetching feedback data:', err);
+      }
+    };
+
+    fetchData();
   }, [currentMember]);
   const [showFeedbackForm, setShowFeedbackForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState('');
@@ -24,27 +37,43 @@ const UserFeedback = () => {
   const [hoverRating, setHoverRating] = useState(0);
   const addToast = useToast();
 
-  const handleSubmitFeedback = () => {
+  const handleSubmitFeedback = async () => {
     if (!selectedOrder) {
       addToast('Please select an order', 'error');
       return;
     }
 
-    // Check if feedback already exists for this order
     if (feedbacks.some((f) => f.order_id === selectedOrder)) {
       addToast('You have already provided feedback for this order', 'warning');
       return;
     }
 
-    // TODO: Call API to submit feedback
-    // submitFeedback(currentMember, selectedOrder, rating, comments);
-    addToast('Feedback submitted (Placeholder)', 'success');
-    // refreshData();
-    setSelectedOrder('');
-    setRating(5);
-    setComments('');
-    setShowFeedbackForm(false);
-    addToast('Thank you for your feedback!', 'success');
+    try {
+      const response = await fetch('http://localhost:5000/api/user/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          member_id: currentMember,
+          order_id: selectedOrder,
+          rating,
+          comments
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to submit feedback');
+
+      addToast('Thank you for your feedback!', 'success');
+      
+      // Refresh local state (simplified)
+      setFeedbacks([...feedbacks, { order_id: selectedOrder, rating, comments, feedback_date: 'Just now' }]);
+      
+      setSelectedOrder('');
+      setRating(5);
+      setComments('');
+      setShowFeedbackForm(false);
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
   };
 
   const averageRating = useMemo(() => {

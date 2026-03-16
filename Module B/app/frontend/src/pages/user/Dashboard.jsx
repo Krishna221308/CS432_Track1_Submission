@@ -1,36 +1,36 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
 
 const UserDashboard = () => {
-  const currentMember = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.memberId || 'MEM-001';
-  }, []);
+  const currentMember = getMemberId();
 
   const [memberOrders, setMemberOrders] = useState([]);
-  const [memberPayments, setMemberPayments] = useState([]);
+  const [stats, setStats] = useState({ totalSpent: 0, pendingPayment: 0 });
   const [memberFeedbacks, setMemberFeedbacks] = useState([]);
   const [memberLostItems, setMemberLostItems] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch member's orders, payments, feedbacks, and lost items from backend API
-    // setMemberOrders(fetchedOrders);
-    // setMemberPayments(fetchedPayments);
-    // setMemberFeedbacks(fetchedFeedbacks);
-    // setMemberLostItems(fetchedLostItems);
+    if (!currentMember) return;
+
+    const fetchData = async () => {
+      try {
+        // Fetch stats
+        const statsRes = await fetch(`http://localhost:5000/api/user/stats/${currentMember}`);
+        const statsData = await statsRes.json();
+        if (statsRes.ok) setStats(statsData);
+
+        // Fetch orders
+        const ordersRes = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const ordersData = await ordersRes.json();
+        if (ordersRes.ok) setMemberOrders(ordersData);
+      } catch (err) {
+        console.error('Error fetching dashboard data:', err);
+      }
+    };
+
+    fetchData();
   }, [currentMember]);
-
-  const totalSpent = useMemo(() => {
-    return memberPayments
-      .filter((p) => p.payment_date !== null)
-      .reduce((sum, p) => sum + p.payment_amount, 0);
-  }, [memberPayments]);
-
-  const pendingAmount = useMemo(() => {
-    return memberPayments
-      .filter((p) => p.payment_date === null)
-      .reduce((sum, p) => sum + p.payment_amount, 0);
-  }, [memberPayments]);
 
   const averageRating = useMemo(() => {
     if (memberFeedbacks.length === 0) return 0;
@@ -57,12 +57,12 @@ const UserDashboard = () => {
         </div>
         <div className="stat-box">
           <h3>Total Spent</h3>
-          <p className="stat-value">₹{totalSpent.toFixed(2)}</p>
+          <p className="stat-value">₹{stats.totalSpent.toFixed(2)}</p>
           <span className="stat-label">Paid</span>
         </div>
         <div className="stat-box">
           <h3>Pending Payment</h3>
-          <p className="stat-value" style={{ color: '#f59e0b' }}>₹{pendingAmount.toFixed(2)}</p>
+          <p className="stat-value" style={{ color: '#f59e0b' }}>₹{stats.pendingPayment.toFixed(2)}</p>
           <span className="stat-label">Action Needed</span>
         </div>
         <div className="stat-box">

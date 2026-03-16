@@ -1,18 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
 import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
 
 const UserPayments = () => {
-  const currentMember = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.memberId || 'MEM-001';
-  }, []);
+  const currentMember = getMemberId();
 
   const [payments, setPayments] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch member's payments from backend API
-    // setPayments(fetchedPayments);
+    if (!currentMember) return;
+
+    const fetchPayments = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/user/payments/${currentMember}`);
+        const data = await response.json();
+        if (response.ok) setPayments(data);
+      } catch (err) {
+        console.error('Error fetching payments:', err);
+      }
+    };
+
+    fetchPayments();
   }, [currentMember]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState('all');
@@ -139,7 +148,7 @@ const UserPayments = () => {
                     <td className="order-id">{payment.payment_id}</td>
                     <td>{payment.order_id}</td>
                     <td>{getModeLabel(payment.payment_mode)}</td>
-                    <td className="amount">${payment.payment_amount.toFixed(2)}</td>
+                    <td className="amount">₹{payment.payment_amount.toFixed(2)}</td>
                     <td>{payment.payment_date || 'Pending'}</td>
                     <td>
                       <span className={`badge ${getStatusClass(payment.payment_date)}`}>
@@ -195,7 +204,7 @@ const UserPayments = () => {
                 </div>
                 <div className="detail-item">
                   <label>Amount</label>
-                  <p className="amount-highlight">${selectedPayment.payment_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">₹{selectedPayment.payment_amount.toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Payment Date</label>

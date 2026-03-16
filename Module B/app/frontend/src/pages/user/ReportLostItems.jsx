@@ -2,40 +2,70 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Plus, Trash2, AlertCircle } from 'lucide-react';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
 
 const UserReportLostItems = () => {
-  const currentMember = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.memberId || 'MEM-001';
-  }, []);
+  const currentMember = getMemberId();
 
   const [memberOrders, setMemberOrders] = useState([]);
   const [lostItems, setLostItems] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch member's orders and lost items from backend API
-    // setMemberOrders(fetchedOrders);
-    // setLostItems(fetchedItems);
+    if (!currentMember) return;
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const data = await response.json();
+        if (response.ok) setMemberOrders(data);
+      } catch (err) {
+        console.error('Error fetching orders for lost items:', err);
+      }
+    };
+
+    fetchOrders();
   }, [currentMember]);
   const [showReportForm, setShowReportForm] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState('');
   const [itemDescription, setItemDescription] = useState('');
   const addToast = useToast();
 
-  const handleReportItem = () => {
+  const handleReportItem = async () => {
     if (!selectedOrder || !itemDescription.trim()) {
       addToast('Please select an order and describe the lost item', 'error');
       return;
     }
 
-    // TODO: Call API to report lost item
-    // reportLostItem(currentMember, selectedOrder, itemDescription);
-    addToast('Lost item reported (Placeholder)', 'success');
-    // refreshData();
-    setSelectedOrder('');
-    setItemDescription('');
-    setShowReportForm(false);
-    addToast('Lost item reported successfully!', 'success');
+    try {
+      const response = await fetch('http://localhost:5000/api/user/lost-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: selectedOrder,
+          item_description: itemDescription,
+          compensation_amount: 0 // Backend defaults to 0
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to report lost item');
+
+      addToast('Lost item reported successfully!', 'success');
+      
+      // Refresh local state (simplified)
+      setLostItems([...lostItems, { 
+        lost_id: 'NEW', 
+        order_id: selectedOrder, 
+        item_description: itemDescription, 
+        reported_date: 'Just now',
+        compensation_amount: 0 
+      }]);
+      
+      setSelectedOrder('');
+      setItemDescription('');
+      setShowReportForm(false);
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
   };
 
   const getOrderTotal = (orderId) => {

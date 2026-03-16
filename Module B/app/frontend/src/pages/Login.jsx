@@ -21,31 +21,34 @@ const Login = () => {
   const navigate = useNavigate();
   const addToast = useToast();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
 
     if (isLogin) {
       if (!username || !password) {
-        setError('Please fill in all fields');
         addToast('Please fill in all info', 'error');
         return;
       }
 
-      const authenticatedRole = login(username, password);
-      addToast('Login successful!', 'success');
-      redirectUser(authenticatedRole);
+      try {
+        const authenticatedRole = await login(username, password);
+        addToast('Login successful!', 'success');
+        redirectUser(authenticatedRole);
+      } catch (err) {
+        setError(err.message);
+        addToast(err.message, 'error');
+      }
     } else {
-      // Validate Signup
       if (!username || !password || !name || !contact) {
-        setError('Required fields missing');
         addToast('Required fields missing', 'error');
         return;
       }
 
-      const profileData = { username, password, role: 'user', name, contact, age, email };
+      const profileData = { username, password, name, contact, age, email, address: 'To be updated' };
 
       try {
-        const signedUpRole = signup(profileData);
+        const signedUpRole = await signup(profileData);
         addToast('Account created successfully!', 'success');
         redirectUser(signedUpRole);
       } catch (err) {

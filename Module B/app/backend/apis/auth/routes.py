@@ -11,17 +11,19 @@ def signup():
     conn = get_connection()
     cur = conn.cursor()
     try:
-        cur.execute(
-            "INSERT INTO freshwash.users (username, password_hash, role_id) VALUES (%s, %s, 2) RETURNING user_id",
-            (data['username'], data['password'])
-        )
-        user_id = cur.fetchone()[0]
-        
+        # 1. Create Member first to get member_id
         cur.execute(
             "INSERT INTO freshwash.member (name, age, email, contact_number, address) VALUES (%s, %s, %s, %s, %s) RETURNING member_id",
-            (data['name'], data['age'], data['email'], data['contact'], data['address'])
+            (data['name'], data['age'], data['email'], data['contact'], data.get('address', 'To be updated'))
         )
         member_id = cur.fetchone()[0]
+        
+        # 2. Create User with the member_id link
+        cur.execute(
+            "INSERT INTO freshwash.users (username, password_hash, role_id, member_id) VALUES (%s, %s, 2, %s) RETURNING user_id",
+            (data['username'], data['password'], member_id)
+        )
+        user_id = cur.fetchone()[0]
         
         conn.commit()
         return jsonify({"message": "User created", "data": {"user_id": user_id, "member_id": member_id}}), 201
@@ -41,16 +43,16 @@ def login():
     conn = get_connection()
     cur = conn.cursor()
     try:
+        # Join using the new member_id column
         cur.execute(
-            "SELECT u.user_id, r.role_name, m.member_id FROM freshwash.users u "
+            "SELECT u.user_id, r.role_name, u.member_id, u.employee_id, u.username FROM freshwash.users u "
             "JOIN freshwash.roles r ON u.role_id = r.role_id "
-            "LEFT JOIN freshwash.member m ON m.email = (SELECT email FROM freshwash.member WHERE name = u.username OR email = u.username LIMIT 1) "
             "WHERE u.username = %s AND u.password_hash = %s",
             (username, password)
         )
         user = cur.fetchone()
         if user:
-            user_id, role_name, member_id = user
+            user_id, role_name, member_id, employee_id, db_username = user
             token = str(uuid.uuid4())
             expires = datetime.now() + timedelta(hours=24)
             cur.execute(
@@ -58,11 +60,16 @@ def login():
                 (user_id, token, expires)
             )
             conn.commit()
+            
+            # Map role names to lowercase 'user' or 'admin' or 'employee'
+            final_role = role_name.lower().replace('regular user', 'user')
+            
             return jsonify({
                 "token": token,
-                "role": role_name.lower().replace('regular user', 'user'),
+                "role": final_role,
                 "member_id": member_id,
-                "username": username
+                "employee_id": employee_id,
+                "username": db_username
             }), 200
         return jsonify({"error": "Invalid credentials"}), 401
     finally:

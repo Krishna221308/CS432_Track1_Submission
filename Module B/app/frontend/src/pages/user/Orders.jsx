@@ -1,18 +1,27 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Eye } from 'lucide-react';
 import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
 
 const UserOrders = () => {
-  const currentMember = useMemo(() => {
-    const user = JSON.parse(localStorage.getItem('user') || '{}');
-    return user.memberId || 'MEM-001';
-  }, []);
+  const currentMember = getMemberId();
 
   const [orders, setOrders] = useState([]);
 
   useEffect(() => {
-    // TODO: Fetch member's orders from backend API
-    // setOrders(fetchedOrders);
+    if (!currentMember) return;
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const data = await response.json();
+        if (response.ok) setOrders(data);
+      } catch (err) {
+        console.error('Error fetching orders:', err);
+      }
+    };
+
+    fetchOrders();
   }, [currentMember]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
