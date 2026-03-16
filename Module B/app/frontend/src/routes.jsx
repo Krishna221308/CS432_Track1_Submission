@@ -10,6 +10,7 @@ import AdminFeedbacks from './pages/admin/Feedbacks';
 import AdminMembers from './pages/admin/Members';
 import AdminEmployees from './pages/admin/Employees';
 import AdminLostItems from './pages/admin/LostItems';
+import AdminServices from './pages/admin/Services';
 import EmployeeDashboard from './pages/employee/Dashboard';
 import EmployeeOrders from './pages/employee/Orders';
 import EmployeePayments from './pages/employee/Payments';
@@ -50,6 +51,7 @@ const routes = [
       { path: 'members', element: <AdminMembers /> },
       { path: 'employees', element: <AdminEmployees /> },
       { path: 'lost-items', element: <AdminLostItems /> },
+      { path: 'services', element: <AdminServices /> },
     ],
   },
   {

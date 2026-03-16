@@ -219,6 +219,63 @@ export const mockLostItems = [
   },
 ];
 
+// Mock Services Data - attributes: service_id, service_name, service_description, base_price
+export const mockServices = [
+  {
+    service_id: 'SRV-001',
+    service_name: 'Dry Cleaning',
+    service_description: 'Professional dry cleaning for delicate fabrics and formal wear. Safe for silk, wool, and linen.',
+    base_price: 120,
+  },
+  {
+    service_id: 'SRV-002',
+    service_name: 'Wash & Fold',
+    service_description: 'Everyday laundry washed, dried, and neatly folded. Perfect for daily clothing.',
+    base_price: 60,
+  },
+  {
+    service_id: 'SRV-003',
+    service_name: 'Ironing / Press',
+    service_description: 'Crisp, professional press for shirts, trousers, and formal garments.',
+    base_price: 40,
+  },
+  {
+    service_id: 'SRV-004',
+    service_name: 'Express Delivery',
+    service_description: 'Get your clean laundry back within 24 hours. Priority processing included.',
+    base_price: 200,
+  },
+];
+
+// Mock Clothing Types Data - attributes: type_id, type_name, wash_instruction
+export const mockClothingTypes = [
+  { type_id: 'CLT-001', type_name: 'Shirt', wash_instruction: 'Machine wash cold, tumble dry low' },
+  { type_id: 'CLT-002', type_name: 'Trousers', wash_instruction: 'Machine wash warm, hang dry' },
+  { type_id: 'CLT-003', type_name: 'Suit / Blazer', wash_instruction: 'Dry clean only' },
+  { type_id: 'CLT-004', type_name: 'Saree / Silk', wash_instruction: 'Dry clean recommended' },
+  { type_id: 'CLT-005', type_name: 'Bedsheet / Linen', wash_instruction: 'Machine wash warm' },
+  { type_id: 'CLT-006', type_name: 'Jacket / Coat', wash_instruction: 'Dry clean only' },
+];
+
+// Mock Pricing Data - attributes: price_id, service_id, cloth_type, price
+export const mockPricingData = [
+  { price_id: 'PRC-001', service_id: 'SRV-001', cloth_type: 'Shirt', price: 100 },
+  { price_id: 'PRC-002', service_id: 'SRV-001', cloth_type: 'Trousers', price: 120 },
+  { price_id: 'PRC-003', service_id: 'SRV-001', cloth_type: 'Suit / Blazer', price: 250 },
+  { price_id: 'PRC-004', service_id: 'SRV-001', cloth_type: 'Saree / Silk', price: 200 },
+  { price_id: 'PRC-005', service_id: 'SRV-001', cloth_type: 'Jacket / Coat', price: 300 },
+  { price_id: 'PRC-006', service_id: 'SRV-002', cloth_type: 'Shirt', price: 40 },
+  { price_id: 'PRC-007', service_id: 'SRV-002', cloth_type: 'Trousers', price: 50 },
+  { price_id: 'PRC-008', service_id: 'SRV-002', cloth_type: 'Bedsheet / Linen', price: 80 },
+  { price_id: 'PRC-009', service_id: 'SRV-003', cloth_type: 'Shirt', price: 30 },
+  { price_id: 'PRC-010', service_id: 'SRV-003', cloth_type: 'Trousers', price: 35 },
+  { price_id: 'PRC-011', service_id: 'SRV-003', cloth_type: 'Suit / Blazer', price: 60 },
+  { price_id: 'PRC-012', service_id: 'SRV-003', cloth_type: 'Saree / Silk', price: 70 },
+  { price_id: 'PRC-013', service_id: 'SRV-004', cloth_type: 'Shirt', price: 80 },
+  { price_id: 'PRC-014', service_id: 'SRV-004', cloth_type: 'Trousers', price: 90 },
+  { price_id: 'PRC-015', service_id: 'SRV-004', cloth_type: 'Suit / Blazer', price: 350 },
+];
+
 // Mock Member Assignments Data - links members to employees for order handling
 export const mockMemberAssignments = [
   {
@@ -516,4 +573,74 @@ export const submitFeedback = (memberId, orderId, rating, comments) => {
   feedbacks.push(newFeedback);
   saveFeedbacks(feedbacks);
   return newFeedback;
+};
+
+// ─── Services CRUD ───
+const STORAGE_KEY_SERVICES = 'freshwash_services';
+
+export const getServices = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_SERVICES);
+  return stored ? JSON.parse(stored) : mockServices;
+};
+
+export const saveServices = (services) => {
+  localStorage.setItem(STORAGE_KEY_SERVICES, JSON.stringify(services));
+};
+
+export const addService = (service) => {
+  const services = getServices();
+  const newService = { ...service, service_id: `SRV-${Date.now()}` };
+  services.push(newService);
+  saveServices(services);
+  return newService;
+};
+
+export const updateService = (id, updates) => {
+  const services = getServices();
+  const index = services.findIndex((s) => s.service_id === id);
+  if (index !== -1) {
+    services[index] = { ...services[index], ...updates };
+    saveServices(services);
+  }
+  return services[index];
+};
+
+export const deleteService = (id) => {
+  const services = getServices();
+  saveServices(services.filter((s) => s.service_id !== id));
+};
+
+// ─── Pricing CRUD ───
+const STORAGE_KEY_PRICING = 'freshwash_pricing';
+
+export const getPricing = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_PRICING);
+  return stored ? JSON.parse(stored) : mockPricingData;
+};
+
+export const savePricing = (pricing) => {
+  localStorage.setItem(STORAGE_KEY_PRICING, JSON.stringify(pricing));
+};
+
+export const addPricingRule = (rule) => {
+  const pricing = getPricing();
+  const newRule = { ...rule, price_id: `PRC-${Date.now()}` };
+  pricing.push(newRule);
+  savePricing(pricing);
+  return newRule;
+};
+
+export const updatePricingRule = (id, updates) => {
+  const pricing = getPricing();
+  const index = pricing.findIndex((p) => p.price_id === id);
+  if (index !== -1) {
+    pricing[index] = { ...pricing[index], ...updates };
+    savePricing(pricing);
+  }
+  return pricing[index];
+};
+
+export const deletePricingRule = (id) => {
+  const pricing = getPricing();
+  savePricing(pricing.filter((p) => p.price_id !== id));
 };

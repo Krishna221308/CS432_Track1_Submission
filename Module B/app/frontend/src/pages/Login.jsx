@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { LogIn, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { LogIn, UserPlus, Lock, User, Eye, EyeOff } from 'lucide-react';
 import { login } from '../utils/auth';
 import '../styles/login.css';
 
 const Login = () => {
+  const location = useLocation();
+  const [isLogin, setIsLogin] = useState(location.state?.mode !== 'signup');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState('user');
@@ -30,17 +32,16 @@ const Login = () => {
       <div className="login-card">
         <div className="login-header">
           <div className="logo-circle">
-            <LogIn size={28} color="white" />
+            {isLogin ? <LogIn size={28} color="white" /> : <UserPlus size={28} color="white" />}
           </div>
           <h1>FreshWash</h1>
-          <p>Login to manage your laundry</p>
+          <p>{isLogin ? 'Login to manage your laundry' : 'Create an account to get started'}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
             <label>Username</label>
             <div className="input-affix">
-              <User size={18} className="icon" />
               <input
                 type="text"
                 value={username}
@@ -53,7 +54,6 @@ const Login = () => {
           <div className="form-group">
             <label>Password</label>
             <div className="input-affix password-input">
-              <Lock size={18} className="icon" />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
@@ -74,7 +74,6 @@ const Login = () => {
           <div className="form-group">
             <label>Role</label>
             <div className="input-affix">
-              <Lock size={18} className="icon" />
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
@@ -90,9 +89,22 @@ const Login = () => {
           {error && <p className="error-message">{error}</p>}
 
           <button type="submit" className="login-btn">
-            Login
+            {isLogin ? 'Login' : 'Sign Up'}
           </button>
         </form>
+
+        <div className="login-toggle">
+          <p>
+            {isLogin ? "Don't have an account?" : "Already have an account?"}{' '}
+            <button
+              type="button"
+              className="toggle-btn"
+              onClick={() => setIsLogin(!isLogin)}
+            >
+              {isLogin ? 'Create one' : 'Login here'}
+            </button>
+          </p>
+        </div>
 
         <div className="login-footer">
           <p>Test credentials:</p>

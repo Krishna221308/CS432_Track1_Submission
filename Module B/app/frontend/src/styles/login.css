@@ -77,14 +77,14 @@
 
 .input-affix .icon {
   position: absolute;
-  left: 12px;
+  left: 16px;
   color: var(--text-muted);
 }
 
 .input-affix input,
 .input-affix select {
   width: 100%;
-  padding: 0.75rem 1rem 0.75rem 2.5rem;
+  padding: 0.75rem 1rem;
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 1rem;
@@ -142,6 +142,26 @@
 
 .login-btn:hover {
   background-color: var(--primary-dark);
+}
+
+.login-toggle {
+  text-align: center;
+  margin-top: 1.25rem;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+}
+
+.toggle-btn {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.toggle-btn:hover {
+  color: var(--primary-dark);
 }
 
 .error-message {

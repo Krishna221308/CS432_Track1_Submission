@@ -1,59 +1,117 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Clock, ShieldCheck, Zap } from 'lucide-react';
+import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Truck, CheckCircle } from 'lucide-react';
+import { getServices, getPricing } from '../utils/mockData';
 import '../styles/landing.css';
 
+const serviceIcons = {
+  'Dry Cleaning': <ShieldCheck size={32} />,
+  'Wash & Fold': <ShoppingBag size={32} />,
+  'Ironing / Press': <Zap size={32} />,
+  'Express Delivery': <Clock size={32} />,
+};
+
 const Landing = () => {
-  const services = [
-    { title: 'Dry Cleaning', desc: 'Expert care for your delicate garments.', icon: <ShieldCheck size={32} /> },
-    { title: 'Wash & Fold', desc: 'Everyday laundry cleaned and perfectly folded.', icon: <ShoppingBag size={32} /> },
-    { title: 'Ironing Service', desc: 'Crisp, professional press for your shirts and trousers.', icon: <Zap size={32} /> },
-    { title: 'Express Delivery', desc: 'Clean laundry back to you in under 24 hours.', icon: <Clock size={32} /> },
-  ];
+  const services = getServices();
+  const pricing = getPricing();
+
+  // Build pricing table data: unique cloth types as rows, services as columns
+  const clothTypes = [...new Set(pricing.map((p) => p.cloth_type))];
+  const priceLookup = {};
+  pricing.forEach((p) => {
+    const key = `${p.service_id}__${p.cloth_type}`;
+    priceLookup[key] = p.price;
+  });
 
   return (
     <div className="landing-page">
+      {/* ── Navigation ── */}
       <nav className="landing-nav">
         <div className="container">
           <span className="logo">FreshWash</span>
           <div className="nav-links">
             <Link to="/login" className="login-link">Login</Link>
-            <Link to="/login" className="cta-button">Join Now</Link>
+            <Link to="/login" state={{ mode: 'signup' }} className="cta-button">Sign Up</Link>
           </div>
         </div>
       </nav>
 
+      {/* ── Hero ── */}
       <section className="hero">
         <div className="container">
           <div className="hero-content">
             <h1>Premium Laundry Services <span className="text-gradient">Delivered to Your Door</span></h1>
-            <p>Experience the most reliable and professional laundry management system. We take the load off your hands so you can focus on what matters.</p>
+            <p>Experience the most reliable and professional laundry management system. We take&nbsp;the load off your hands so you can focus on what matters.</p>
             <div className="hero-actions">
-              <Link to="/login" className="primary-btn">Schedule Your First Wash</Link>
-              <button className="secondary-btn">View Pricing</button>
+              <Link to="/login" state={{ mode: 'signup' }} className="primary-btn">Get Started Free</Link>
+              <a href="#pricing" className="secondary-btn">View Pricing</a>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="services">
+      {/* ── Services ── */}
+      <section className="services" id="services">
         <div className="container">
           <div className="section-header">
             <h2>Our Services</h2>
             <p>Comprehensive care for all your textile needs.</p>
           </div>
           <div className="services-grid">
-            {services.map((s, i) => (
-              <div key={i} className="service-card">
-                <div className="service-icon">{s.icon}</div>
-                <h3>{s.title}</h3>
-                <p>{s.desc}</p>
+            {services.map((s) => (
+              <div key={s.service_id} className="service-card">
+                <div className="service-icon">
+                  {serviceIcons[s.service_name] || <Sparkles size={32} />}
+                </div>
+                <h3>{s.service_name}</h3>
+                <p>{s.service_description}</p>
+                <div className="service-price">
+                  Starting at <strong>₹{s.base_price}</strong>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
+      {/* ── Pricing Table ── */}
+      <section className="pricing" id="pricing">
+        <div className="container">
+          <div className="section-header">
+            <h2>Transparent Pricing</h2>
+            <p>No hidden charges. See exactly what you pay for each item.</p>
+          </div>
+          <div className="pricing-table-wrapper">
+            <table className="pricing-table">
+              <thead>
+                <tr>
+                  <th>Clothing Type</th>
+                  {services.map((s) => (
+                    <th key={s.service_id}>{s.service_name}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {clothTypes.map((ct) => (
+                  <tr key={ct}>
+                    <td className="cloth-type-cell">{ct}</td>
+                    {services.map((s) => {
+                      const price = priceLookup[`${s.service_id}__${ct}`];
+                      return (
+                        <td key={s.service_id}>
+                          {price !== undefined ? `₹${price}` : <span className="na">—</span>}
+                        </td>
+                      );
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      {/* ── How It Works ── */}
       <section className="how-it-works">
         <div className="container">
           <div className="section-header">
@@ -84,6 +142,7 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* ── Footer ── */}
       <footer className="landing-footer">
         <div className="container">
           <div className="footer-content">

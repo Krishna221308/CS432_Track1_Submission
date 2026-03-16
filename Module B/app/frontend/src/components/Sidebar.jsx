@@ -9,6 +9,7 @@ import {
   Layers, 
   BarChart3,
   User,
+  Tag,
   X 
 } from 'lucide-react';
 import { getRole } from '../utils/auth';
@@ -24,6 +25,7 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
     { name: 'Employees', path: '/admin/employees', icon: <Users size={20} /> },
     { name: 'Feedbacks', path: '/admin/feedbacks', icon: <Layers size={20} /> },
     { name: 'Lost Items', path: '/admin/lost-items', icon: <Truck size={20} /> },
+    { name: 'Services & Pricing', path: '/admin/services', icon: <Tag size={20} /> },
   ];
 
   const employeeMenu = [

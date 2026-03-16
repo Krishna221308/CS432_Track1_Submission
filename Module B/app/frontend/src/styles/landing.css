@@ -57,8 +57,11 @@
   padding: 0.6rem 1.25rem;
   border-radius: 8px;
   font-weight: 600;
+  transition: background 0.2s;
 }
+.cta-button:hover { background: var(--primary-dark); }
 
+/* ── Hero ── */
 .hero {
   padding: 160px 0 100px;
   background: radial-gradient(circle at top right, #eff6ff 0%, white 50%);
@@ -78,6 +81,7 @@
 .text-gradient {
   background: linear-gradient(to right, var(--primary), var(--accent));
   -webkit-background-clip: text;
+  background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
@@ -110,8 +114,11 @@
   padding: 1rem 2rem;
   border-radius: 12px;
   font-weight: 600;
+  transition: border-color 0.2s;
 }
+.secondary-btn:hover { border-color: var(--primary-light); }
 
+/* ── Services ── */
 .services { padding: 100px 0; }
 
 .section-header {
@@ -123,6 +130,11 @@
   font-size: 2.5rem;
   font-weight: 800;
   margin-bottom: 1rem;
+}
+
+.section-header p {
+  color: var(--text-muted);
+  font-size: 1.1rem;
 }
 
 .services-grid {
@@ -151,14 +163,98 @@
 
 .service-card h3 {
   font-size: 1.25rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
-.how-it-works { 
-  padding: 100px 0; 
-  background-color: var(--bg-main); 
-  border-radius: 40px; 
-  margin: 0 1rem; 
+.service-card p {
+  color: var(--text-muted);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.service-price {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.service-price strong {
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+
+/* ── Pricing Table ── */
+.pricing {
+  padding: 100px 0;
+  background-color: var(--bg-main);
+  border-radius: 40px;
+  margin: 0 1rem;
+}
+
+.pricing-table-wrapper {
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  background: white;
+}
+
+.pricing-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px;
+}
+
+.pricing-table thead {
+  background: var(--primary);
+}
+
+.pricing-table th {
+  color: white;
+  padding: 1rem 1.25rem;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+  text-align: center;
+  border-bottom: none;
+}
+
+.pricing-table th:first-child {
+  text-align: left;
+}
+
+.pricing-table td {
+  padding: 1rem 1.25rem;
+  text-align: center;
+  font-size: 0.95rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.pricing-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.pricing-table tbody tr:hover {
+  background-color: #f0f9ff;
+}
+
+.cloth-type-cell {
+  font-weight: 600;
+  color: var(--text-main);
+  text-align: left !important;
+}
+
+.pricing-table .na {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+/* ── How It Works ── */
+.how-it-works {
+  padding: 100px 0;
 }
 
 .steps-container {
@@ -171,8 +267,8 @@
 .step { text-align: center; position: relative; }
 
 .step-number {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   background: var(--primary);
   color: white;
   border-radius: 50%;
@@ -181,15 +277,31 @@
   justify-content: center;
   margin: 0 auto 1.5rem;
   font-weight: 800;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(30, 64, 175, 0.25);
 }
 
+.step h4 {
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.step p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* ── Footer ── */
 .landing-footer { padding: 80px 0 40px; border-top: 1px solid var(--border); margin-top: 4rem; }
 
 .footer-content { display: flex; justify-content: space-between; margin-bottom: 40px; }
 
 .footer-brand { max-width: 300px; }
+.footer-brand p { color: var(--text-muted); margin-top: 0.5rem; }
 
 .footer-links { display: flex; gap: 3rem; }
+.footer-links a { color: var(--text-muted); transition: color 0.2s; }
+.footer-links a:hover { color: var(--primary); }
 
 .footer-bottom { border-top: 1px solid var(--border); padding-top: 20px; font-size: 0.875rem; color: var(--text-muted); }
 
@@ -197,4 +309,5 @@
   .hero h1 { font-size: 2.5rem; }
   .hero-actions { flex-direction: column; }
   .footer-content { flex-direction: column; gap: 2rem; }
+  .section-header h2 { font-size: 2rem; }
 }
