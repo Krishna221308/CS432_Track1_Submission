@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { Search, UserPlus, Edit2 } from 'lucide-react';
-import { mockMembers, mockEmployees, getMemberAssignments, getAssignedEmployeeForMember, assignMemberToEmployee } from '../../utils/mockData';
+import { Search, UserPlus, Edit2, Trash2 } from 'lucide-react';
+import { getMembers, mockEmployees, getMemberAssignments, getAssignedEmployeeForMember, assignMemberToEmployee, deleteMember } from '../../utils/mockData';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -10,19 +10,22 @@ const AdminMembers = () => {
   const [selectedEmployee, setSelectedEmployee] = useState('');
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
+  const [memberToDelete, setMemberToDelete] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const addToast = useToast();
 
+  const members = useMemo(() => getMembers(), []);
   const memberAssignments = useMemo(() => getMemberAssignments(), []);
 
   const filteredMembers = useMemo(() => {
-    return mockMembers.filter((member) => {
+    return members.filter((member) => {
       const matchesSearch =
         member.member_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.member_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.email.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
-  }, [searchTerm]);
+  }, [searchTerm, members]);
 
   const getAssignedEmployeeName = (memberId) => {
     const employee = getAssignedEmployeeForMember(memberId);
@@ -46,6 +49,20 @@ const AdminMembers = () => {
     }
   };
 
+  const handleDeleteClick = (member) => {
+    setMemberToDelete(member);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (memberToDelete) {
+      deleteMember(memberToDelete.member_id);
+      addToast('Member deleted successfully', 'success');
+      setShowDeleteConfirm(false);
+      setMemberToDelete(null);
+    }
+  };
+
   return (
     <div className="admin-page">
       <header className="page-header">
@@ -66,13 +83,13 @@ const AdminMembers = () => {
 
         <div className="filter-buttons">
           <button className="filter-btn active">
-            Total Members ({mockMembers.length})
+            Total Members ({members.length})
           </button>
           <button className="filter-btn">
             Assigned ({memberAssignments.length})
           </button>
           <button className="filter-btn">
-            Unassigned ({mockMembers.length - memberAssignments.length})
+            Unassigned ({members.length - memberAssignments.length})
           </button>
         </div>
       </div>
@@ -106,13 +123,22 @@ const AdminMembers = () => {
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => handleAssignClick(member)}
-                        title="Assign to Employee"
-                      >
-                        <Edit2 size={16} />
-                      </button>
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleAssignClick(member)}
+                          title="Assign to Employee"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleDeleteClick(member)}
+                          title="Delete Member"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -190,6 +216,42 @@ const AdminMembers = () => {
                   Assign Member
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && memberToDelete && (
+        <div className="modal-overlay" onClick={() => setShowDeleteConfirm(false)}>
+          <div className="modal-content delete-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Delete Member</h2>
+              <button className="close-modal" onClick={() => setShowDeleteConfirm(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <p className="delete-warning">
+                Are you sure you want to <strong>delete {memberToDelete.member_name}</strong>?
+              </p>
+              <p className="delete-info">
+                This action cannot be undone. All assignments and data related to this member will be removed.
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn btn-danger"
+                onClick={handleConfirmDelete}
+              >
+                Delete Member
+              </button>
             </div>
           </div>
         </div>
@@ -289,6 +351,54 @@ const AdminMembers = () => {
         .edit-btn:hover {
           background: #e5e7eb;
           color: #000;
+        }
+
+        .delete-btn {
+          background: #fee2e2;
+          color: #dc2626;
+          border: none;
+          padding: 8px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .delete-btn:hover {
+          background: #fecaca;
+          color: #b91c1c;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .btn-danger {
+          background: #dc2626;
+          color: white;
+        }
+
+        .btn-danger:hover {
+          background: #b91c1c;
+        }
+
+        .delete-modal {
+          max-width: 400px;
+        }
+
+        .delete-warning {
+          color: #dc2626;
+          font-weight: 600;
+          margin-bottom: 12px;
+        }
+
+        .delete-info {
+          color: #6b7280;
+          font-size: 0.9rem;
+          line-height: 1.5;
         }
       `}</style>
     </div>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Navigate } from 'react-router-dom';
 import Login from './pages/Login';
+import AdminLogin from './pages/AdminLogin';
 import Landing from './pages/Landing';
 import DashboardLayout from './layouts/DashboardLayout';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -36,6 +37,10 @@ const routes = [
   {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/admin-auth',
+    element: <AdminLogin />,
   },
   {
     path: '/admin',

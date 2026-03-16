@@ -4,7 +4,7 @@
  * Attributes match the database schema exactly
  */
 
-// Mock Orders Data - attributes: order_id, member_id, order_date, pickup_time, order_status, total_amount
+// Mock Orders Data - attributes: order_id, member_id, order_date, pickup_time, order_status, payment_status, total_amount
 export const mockOrders = [
   {
     order_id: 'ORD-001',
@@ -12,6 +12,7 @@ export const mockOrders = [
     order_date: '2025-03-10',
     pickup_time: '10:00 AM',
     order_status: 'completed',
+    payment_status: 'paid',
     total_amount: 22.50,
   },
   {
@@ -20,6 +21,7 @@ export const mockOrders = [
     order_date: '2025-03-13',
     pickup_time: '02:00 PM',
     order_status: 'processing',
+    payment_status: 'pending',
     total_amount: 45.00,
   },
   {
@@ -28,6 +30,7 @@ export const mockOrders = [
     order_date: '2025-03-14',
     pickup_time: '11:00 AM',
     order_status: 'pending',
+    payment_status: 'pending',
     total_amount: 15.00,
   },
   {
@@ -36,6 +39,7 @@ export const mockOrders = [
     order_date: '2025-03-08',
     pickup_time: '03:00 PM',
     order_status: 'completed',
+    payment_status: 'paid',
     total_amount: 30.00,
   },
   {
@@ -44,6 +48,7 @@ export const mockOrders = [
     order_date: '2025-03-11',
     pickup_time: '09:00 AM',
     order_status: 'processing',
+    payment_status: 'failed',
     total_amount: 75.00,
   },
 ];
@@ -499,6 +504,73 @@ export const getAssignedEmployeeForOrder = (orderId) => {
   return null; // No assignment found
 };
 
+// ─── Members Management ───
+const STORAGE_KEY_MEMBERS = 'freshwash_members';
+
+export const getMembers = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_MEMBERS);
+  return stored ? JSON.parse(stored) : mockMembers;
+};
+
+export const saveMembers = (members) => {
+  localStorage.setItem(STORAGE_KEY_MEMBERS, JSON.stringify(members));
+};
+
+export const deleteMember = (memberId) => {
+  const members = getMembers();
+  const filtered = members.filter((m) => m.member_id !== memberId);
+  saveMembers(filtered);
+  
+  // Also remove member assignments
+  const assignments = getMemberAssignments();
+  const filteredAssignments = assignments.filter((a) => a.member_id !== memberId);
+  saveMemberAssignments(filteredAssignments);
+};
+
+// ─── Orders Management ───
+const STORAGE_KEY_ORDERS = 'freshwash_orders';
+
+export const getOrders = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_ORDERS);
+  return stored ? JSON.parse(stored) : mockOrders;
+};
+
+export const saveOrders = (orders) => {
+  localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(orders));
+};
+
+export const addOrder = (orderData) => {
+  const orders = getOrders();
+  const newOrder = {
+    order_id: `ORD-${Date.now()}`,
+    member_id: orderData.member_id,
+    order_date: new Date().toISOString().split('T')[0],
+    pickup_time: orderData.pickup_time,
+    order_status: 'pending',
+    payment_status: 'pending',
+    total_amount: orderData.total_amount || 0,
+  };
+  orders.push(newOrder);
+  saveOrders(orders);
+  return newOrder;
+};
+
+export const updateOrder = (orderId, updates) => {
+  const orders = getOrders();
+  const index = orders.findIndex((o) => o.order_id === orderId);
+  if (index !== -1) {
+    orders[index] = { ...orders[index], ...updates };
+    saveOrders(orders);
+    return orders[index];
+  }
+  return null;
+};
+
+export const deleteOrder = (orderId) => {
+  const orders = getOrders();
+  saveOrders(orders.filter((o) => o.order_id !== orderId));
+};
+
 // User-specific helper functions
 const STORAGE_KEY_LOST_ITEMS = 'freshwash_lost_items';
 const STORAGE_KEY_FEEDBACKS = 'freshwash_feedbacks';
@@ -521,6 +593,38 @@ export const saveFeedbacks = (feedbacks) => {
   localStorage.setItem(STORAGE_KEY_FEEDBACKS, JSON.stringify(feedbacks));
 };
 
+// ─── Payments Management ───
+const STORAGE_KEY_PAYMENTS = 'freshwash_payments';
+
+export const getPayments = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_PAYMENTS);
+  return stored ? JSON.parse(stored) : mockPayments;
+};
+
+export const savePayments = (payments) => {
+  localStorage.setItem(STORAGE_KEY_PAYMENTS, JSON.stringify(payments));
+};
+
+export const updatePayment = (paymentId, updates) => {
+  const payments = getPayments();
+  const index = payments.findIndex((p) => p.payment_id === paymentId);
+  if (index !== -1) {
+    const updatedPayment = { ...payments[index], ...updates };
+    payments[index] = updatedPayment;
+    savePayments(payments);
+    
+    // If payment status changed to paid, update the associated order's payment_status
+    if (updates.payment_date) {
+      updateOrder(updatedPayment.order_id, { payment_status: 'paid' });
+    } else if (updates.payment_date === null) {
+      updateOrder(updatedPayment.order_id, { payment_status: 'pending' });
+    }
+    
+    return updatedPayment;
+  }
+  return null;
+};
+
 // Get data for specific member (user)
 export const getOrdersForMember = (memberId) => {
   return mockOrders.filter((o) => o.member_id === memberId);
@@ -529,7 +633,7 @@ export const getOrdersForMember = (memberId) => {
 export const getPaymentsForMember = (memberId) => {
   const memberOrders = getOrdersForMember(memberId);
   const memberOrderIds = new Set(memberOrders.map((o) => o.order_id));
-  return mockPayments.filter((p) => memberOrderIds.has(p.order_id));
+  return getPayments().filter((p) => memberOrderIds.has(p.order_id));
 };
 
 export const getFeedbacksForMember = (memberId) => {

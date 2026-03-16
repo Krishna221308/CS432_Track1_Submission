@@ -1,6 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { Search, Eye } from 'lucide-react';
-import { getOrdersAssignedToEmployee, getAssignedEmployeeForOrder } from '../../utils/mockData';
+import React, { useState, useMemo, useEffect } from 'react';
+import { Search, Eye, Plus, Edit2 } from 'lucide-react';
+import { getOrdersAssignedToEmployee, getAssignedEmployeeForOrder, getAssignedMembersForEmployee, getOrders, addOrder, updateOrder } from '../../utils/mockData';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const EmployeeOrders = () => {
@@ -10,12 +11,33 @@ const EmployeeOrders = () => {
     return user.employeeId || 'EMP-001';
   }, []);
 
-  const [assignedOrders] = useState(getOrdersAssignedToEmployee(currentEmployee));
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orders, setOrders] = useState([]);
+  const [assignedMembers, setAssignedMembers] = useState([]);
+  
+  const [showAddOrderModal, setShowAddOrderModal] = useState(false);
+  const [newOrderData, setNewOrderData] = useState({
+    member_id: '',
+    pickup_time: '',
+    total_amount: '',
+  });
+  
+  const [manageOrder, setManageOrder] = useState(null);
+  const [newStatus, setNewStatus] = useState('');
+  const [showManageModal, setShowManageModal] = useState(false);
+  const addToast = useToast();
 
-  const filteredOrders = assignedOrders.filter((order) => {
+  const loadData = () => {
+    setOrders(getOrdersAssignedToEmployee(currentEmployee));
+    setAssignedMembers(getAssignedMembersForEmployee(currentEmployee));
+  };
+
+  useEffect(() => {
+    loadData();
+  }, [currentEmployee]);
+
+  const filteredOrders = orders.filter((order) => {
     const matchesSearch =
       order.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       order.member_id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -27,30 +49,79 @@ const EmployeeOrders = () => {
     return `badge ${status}`;
   };
 
+  const handleAddOrder = () => {
+    if (!newOrderData.member_id || !newOrderData.pickup_time || !newOrderData.total_amount) {
+      addToast('Please fill in all fields', 'error');
+      return;
+    }
+
+    try {
+      addOrder({
+        member_id: newOrderData.member_id,
+        pickup_time: newOrderData.pickup_time,
+        total_amount: parseFloat(newOrderData.total_amount),
+      });
+      addToast('Order added successfully!', 'success');
+      setShowAddOrderModal(false);
+      setNewOrderData({ member_id: '', pickup_time: '', total_amount: '' });
+      loadData();
+    } catch (error) {
+      addToast('Failed to add order', 'error');
+    }
+  };
+
+  const handleManageClick = (order) => {
+    setManageOrder(order);
+    setNewStatus(order.order_status);
+    setShowManageModal(true);
+  };
+
+  const handleUpdateStatus = () => {
+    if (manageOrder && newStatus) {
+      updateOrder(manageOrder.order_id, { order_status: newStatus });
+      addToast('Order status updated successfully!', 'success');
+      setShowManageModal(false);
+      setManageOrder(null);
+      setNewStatus('');
+      loadData();
+    }
+  };
+
   return (
     <div className="admin-page">
       <header className="page-header">
-        <h1>Assigned Orders</h1>
-        <p>View and manage your assigned orders</p>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          <div>
+            <h1>Assigned Orders</h1>
+            <p>View and manage your assigned orders</p>
+          </div>
+        </div>
+        <button
+          className="btn-add-order"
+          onClick={() => setShowAddOrderModal(true)}
+          title="Add new order for your assigned members"
+        >
+          <Plus size={18} /> Add Order
+        </button>
       </header>
 
       <div className="stats-section">
         <div className="stat-box">
           <h3>Total Assigned</h3>
-          <p className="stat-value">{assignedOrders.length}</p>
+          <p className="stat-value">{orders.length}</p>
           <span className="stat-label">Orders</span>
         </div>
         <div className="stat-box">
           <h3>Pending</h3>
           <p className="stat-value" style={{ color: '#f59e0b' }}>
-            {assignedOrders.filter((o) => o.order_status === 'pending').length}
+            {orders.filter((o) => o.order_status === 'pending').length}
           </p>
           <span className="stat-label">Action Needed</span>
         </div>
         <div className="stat-box">
           <h3>Completed</h3>
           <p className="stat-value" style={{ color: '#10b981' }}>
-            {assignedOrders.filter((o) => o.order_status === 'completed').length}
+            {orders.filter((o) => o.order_status === 'completed').length}
           </p>
           <span className="stat-label">Done</span>
         </div>
@@ -72,25 +143,25 @@ const EmployeeOrders = () => {
             className={`filter-btn ${filterStatus === 'all' ? 'active' : ''}`}
             onClick={() => setFilterStatus('all')}
           >
-            All Orders ({assignedOrders.length})
+            All Orders ({orders.length})
           </button>
           <button
             className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
             onClick={() => setFilterStatus('pending')}
           >
-            Pending ({assignedOrders.filter((o) => o.order_status === 'pending').length})
+            Pending ({orders.filter((o) => o.order_status === 'pending').length})
           </button>
           <button
             className={`filter-btn ${filterStatus === 'processing' ? 'active' : ''}`}
             onClick={() => setFilterStatus('processing')}
           >
-            Processing ({assignedOrders.filter((o) => o.order_status === 'processing').length})
+            Processing ({orders.filter((o) => o.order_status === 'processing').length})
           </button>
           <button
             className={`filter-btn ${filterStatus === 'completed' ? 'active' : ''}`}
             onClick={() => setFilterStatus('completed')}
           >
-            Completed ({assignedOrders.filter((o) => o.order_status === 'completed').length})
+            Completed ({orders.filter((o) => o.order_status === 'completed').length})
           </button>
         </div>
       </div>
@@ -130,13 +201,15 @@ const EmployeeOrders = () => {
                       </span>
                     </td>
                     <td>
-                      <button
-                        className="action-btn view-btn"
-                        onClick={() => setSelectedOrder(order)}
-                        title="View Details"
-                      >
-                        <Eye size={16} />
-                      </button>
+                      <div className="action-buttons">
+                        <button
+                          className="action-btn edit-btn icon-only"
+                          onClick={() => handleManageClick(order)}
+                          title="Manage Order"
+                        >
+                          <Edit2 size={16} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -152,13 +225,13 @@ const EmployeeOrders = () => {
         </div>
       </div>
 
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+      {/* Manage Order Modal (Detailed View + Edit Status) */}
+      {showManageModal && manageOrder && (
+        <div className="modal-overlay" onClick={() => setShowManageModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Order Details</h2>
-              <button className="close-modal" onClick={() => setSelectedOrder(null)}>
+              <h2>Manage Order</h2>
+              <button className="close-modal" onClick={() => setShowManageModal(false)}>
                 ×
               </button>
             </div>
@@ -166,43 +239,148 @@ const EmployeeOrders = () => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Order ID</label>
-                  <p>{selectedOrder.order_id}</p>
+                  <p>{manageOrder.order_id}</p>
                 </div>
                 <div className="detail-item">
                   <label>Member ID</label>
-                  <p>{selectedOrder.member_id}</p>
+                  <p>{manageOrder.member_id}</p>
                 </div>
                 <div className="detail-item">
                   <label>Order Date</label>
-                  <p>{selectedOrder.order_date}</p>
+                  <p>{manageOrder.order_date}</p>
                 </div>
                 <div className="detail-item">
                   <label>Pickup Time</label>
-                  <p>{selectedOrder.pickup_time}</p>
+                  <p>{manageOrder.pickup_time}</p>
                 </div>
                 <div className="detail-item">
                   <label>Total Amount</label>
-                  <p className="amount-highlight">${selectedOrder.total_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">${manageOrder.total_amount.toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
-                  <label>Status</label>
+                  <label>Current Status</label>
                   <p>
-                    <span
-                      className={getStatusBadgeClass(selectedOrder.order_status)}
-                      style={{ display: 'inline-block' }}
-                    >
-                      {selectedOrder.order_status.charAt(0).toUpperCase() + selectedOrder.order_status.slice(1)}
+                    <span className={getStatusBadgeClass(manageOrder.order_status)}>
+                      {manageOrder.order_status.charAt(0).toUpperCase() + manageOrder.order_status.slice(1)}
                     </span>
                   </p>
                 </div>
-                <div className="detail-item">
-                  <label>Handler</label>
-                  <p>
-                    <span className="employee-badge">
-                      {getAssignedEmployeeForOrder(selectedOrder.order_id)?.employee_name || 'Unassigned'}
-                    </span>
-                  </p>
+                <div className="detail-item full-width">
+                  <label htmlFor="status-select">Update Status *</label>
+                  <select
+                    id="status-select"
+                    className="form-select"
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
+                  >
+                    <option value="">-- Select Status --</option>
+                    <option value="pending">Pending</option>
+                    <option value="processing">Processing</option>
+                    <option value="completed">Completed</option>
+                  </select>
                 </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowManageModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleUpdateStatus}
+                  disabled={!newStatus}
+                >
+                  Update Order
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Order Modal */}
+      {showAddOrderModal && (
+        <div className="modal-overlay" onClick={() => setShowAddOrderModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add Order for Member</h2>
+              <button className="close-modal" onClick={() => setShowAddOrderModal(false)}>
+                ×
+              </button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-item full-width">
+                  <label htmlFor="member-select">Member *</label>
+                  <select
+                    id="member-select"
+                    className="form-select"
+                    value={newOrderData.member_id}
+                    onChange={(e) =>
+                      setNewOrderData({ ...newOrderData, member_id: e.target.value })
+                    }
+                  >
+                    <option value="">-- Select Member --</option>
+                    {assignedMembers.map((member) => (
+                      <option key={member.member_id} value={member.member_id}>
+                        {member.member_name} ({member.member_id})
+                      </option>
+                    ))}
+                  </select>
+                  {assignedMembers.length === 0 && (
+                    <p style={{ color: '#dc2626', fontSize: '0.85rem', marginTop: '4px' }}>
+                      No members assigned to you yet
+                    </p>
+                  )}
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="pickup-time">Pickup Time *</label>
+                  <input
+                    id="pickup-time"
+                    type="text"
+                    className="form-select"
+                    placeholder="e.g., 10:00 AM"
+                    value={newOrderData.pickup_time}
+                    onChange={(e) =>
+                      setNewOrderData({ ...newOrderData, pickup_time: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="total-amount">Amount (₹) *</label>
+                  <input
+                    id="total-amount"
+                    type="number"
+                    className="form-select"
+                    placeholder="0.00"
+                    value={newOrderData.total_amount}
+                    onChange={(e) =>
+                      setNewOrderData({ ...newOrderData, total_amount: e.target.value })
+                    }
+                    step="0.01"
+                  />
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button
+                  className="btn btn-secondary"
+                  onClick={() => setShowAddOrderModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-primary"
+                  onClick={handleAddOrder}
+                  disabled={assignedMembers.length === 0}
+                >
+                  Add Order
+                </button>
               </div>
             </div>
           </div>
@@ -218,6 +396,201 @@ const EmployeeOrders = () => {
           border-radius: 12px;
           font-size: 0.85rem;
           font-weight: 500;
+        }
+
+        .btn-add-order {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          font-size: 0.9rem;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-add-order:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-add-order:active {
+          transform: translateY(0);
+        }
+
+        .form-select {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          background-color: #fff;
+          cursor: pointer;
+          transition: border-color 0.2s;
+        }
+
+        .form-select:hover {
+          border-color: #d1d5db;
+        }
+
+        .form-select:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .detail-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 16px;
+          margin-bottom: 20px;
+        }
+
+        .detail-item {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
+
+        .detail-item label {
+          font-size: 0.85rem;
+          font-weight: 600;
+          color: #374151;
+        }
+
+        .detail-item.full-width {
+          grid-column: 1 / -1;
+        }
+
+        .modal-footer {
+          display: flex;
+          gap: 12px;
+          justify-content: flex-end;
+          margin-top: 24px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        .btn {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+        }
+
+        .btn-primary {
+          background: #3b82f6;
+          color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+          background: #2563eb;
+        }
+
+        .btn-primary:disabled {
+          background: #d1d5db;
+          cursor: not-allowed;
+        }
+
+        .btn-secondary {
+          background: #e5e7eb;
+          color: #374151;
+        }
+
+        .btn-secondary:hover {
+          background: #d1d5db;
+        }
+
+        .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          z-index: 1000;
+        }
+
+        .modal-content {
+          background: white;
+          border-radius: 12px;
+          max-width: 500px;
+          width: 90%;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+          overflow: hidden;
+        }
+
+        .modal-header {
+          padding: 20px;
+          border-bottom: 1px solid #e5e7eb;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        .modal-header h2 {
+          margin: 0;
+          font-size: 1.25rem;
+          color: #111827;
+        }
+
+        .close-modal {
+          background: none;
+          border: none;
+          font-size: 24px;
+          cursor: pointer;
+          color: #9ca3af;
+          transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+          color: #111827;
+        }
+
+        .modal-body {
+          padding: 20px;
+        }
+
+        .action-buttons {
+          display: flex;
+          gap: 8px;
+        }
+
+        .edit-btn {
+          background: #fef08a;
+          color: #92400e;
+          border: none;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 6px;
+          font-weight: 500;
+        }
+
+        .edit-btn:hover {
+          background: #fde047;
+          color: #78350f;
+          transform: translateY(-1px);
+        }
+
+        .edit-btn.icon-only {
+          padding: 8px;
+          border-radius: 6px;
         }
       `}</style>
     </div>

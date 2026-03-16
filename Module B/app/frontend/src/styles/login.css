@@ -88,6 +88,23 @@
   color: var(--text-main);
 }
 
+body.dark-theme .form-group label {
+  color: #f3f4f6;
+}
+
+body.dark-theme .login-card {
+  background: rgba(31, 41, 55, 0.95);
+  border-color: rgba(56, 189, 248, 0.2);
+}
+
+body.dark-theme .login-header h1 {
+  color: #f3f4f6;
+}
+
+body.dark-theme .login-header p {
+  color: #d1d5db;
+}
+
 .input-affix {
   position: relative;
   display: flex;
@@ -112,12 +129,31 @@
   transition: all var(--transition-fast);
 }
 
+body.dark-theme .input-affix input,
+body.dark-theme .input-affix select {
+  background: rgba(30, 41, 59, 0.8);
+  border-color: rgba(148, 163, 184, 0.3);
+  color: #f8fafc;
+}
+
+body.dark-theme .input-affix input::placeholder,
+body.dark-theme .input-affix select::placeholder {
+  color: #94a3b8;
+}
+
 .input-affix input:focus,
 .input-affix select:focus {
   outline: none;
   background: rgba(255, 255, 255, 0.8);
   border-color: var(--primary);
   box-shadow: 0 0 0 4px rgba(91, 124, 224, 0.12);
+}
+
+body.dark-theme .input-affix input:focus,
+body.dark-theme .input-affix select:focus {
+  background: rgba(51, 65, 85, 0.9);
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.15);
 }
 
 .password-input {

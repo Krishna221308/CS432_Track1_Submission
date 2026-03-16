@@ -15,7 +15,6 @@ const Login = () => {
   const [age, setAge] = useState('');
   const [email, setEmail] = useState('');
   const [contact, setContact] = useState('');
-  const [jobRole, setJobRole] = useState('');
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -43,14 +42,7 @@ const Login = () => {
         return;
       }
 
-      const profileData = { username, password, role, name, contact };
-
-      if (role === 'user') {
-        profileData.age = age;
-        profileData.email = email;
-      } else if (role === 'employee') {
-        profileData.jobRole = jobRole;
-      }
+      const profileData = { username, password, role: 'user', name, contact, age, email };
 
       try {
         const signedUpRole = signup(profileData);
@@ -143,61 +135,44 @@ const Login = () => {
                 </div>
               </div>
 
-              {role === 'user' && (
-                <>
-                  <div className="form-group-row">
-                    <div className="form-group">
-                      <label>Age</label>
-                      <input
-                        type="number"
-                        value={age}
-                        onChange={(e) => setAge(e.target.value)}
-                        placeholder="Age"
-                      />
-                    </div>
-                    <div className="form-group">
-                      <label>Email</label>
-                      <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        placeholder="Email address"
-                      />
-                    </div>
-                  </div>
-                </>
-              )}
-
-              {role === 'employee' && (
+              <div className="form-group-row">
                 <div className="form-group">
-                  <label>Job Role</label>
-                  <div className="input-affix">
-                    <input
-                      type="text"
-                      value={jobRole}
-                      onChange={(e) => setJobRole(e.target.value)}
-                      placeholder="e.g. Laundry Associate"
-                    />
-                  </div>
+                  <label>Age</label>
+                  <input
+                    type="number"
+                    value={age}
+                    onChange={(e) => setAge(e.target.value)}
+                    placeholder="Age"
+                  />
                 </div>
-              )}
+                <div className="form-group">
+                  <label>Email</label>
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Email address"
+                  />
+                </div>
+              </div>
             </>
           )}
 
-          <div className="form-group">
-            <label>Role</label>
-            <div className="input-affix">
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="role-select"
-              >
-                <option value="user">User / Member</option>
-                <option value="employee">Employee</option>
-                <option value="admin">Admin</option>
-              </select>
+          {isLogin && (
+            <div className="form-group">
+              <label>Role</label>
+              <div className="input-affix">
+                <select
+                  value={role}
+                  onChange={(e) => setRole(e.target.value)}
+                  className="role-select"
+                >
+                  <option value="user">User</option>
+                  <option value="employee">Employee</option>
+                </select>
+              </div>
             </div>
-          </div>
+          )}
 
           {error && <p className="error-message">{error}</p>}
 
@@ -215,6 +190,7 @@ const Login = () => {
               onClick={() => {
                 setIsLogin(!isLogin);
                 setError('');
+                if (isLogin) setRole('user'); // Default to user on signup mode
               }}
             >
               {isLogin ? 'Create one' : 'Login here'}

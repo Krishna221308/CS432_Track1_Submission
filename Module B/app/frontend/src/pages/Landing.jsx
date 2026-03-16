@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Truck, CheckCircle } from 'lucide-react';
+import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Edit2 } from 'lucide-react';
 import { getServices, getPricing } from '../utils/mockData';
 import ThemeToggle from '../components/ThemeToggle';
 import '../styles/landing.css';
@@ -15,6 +15,8 @@ const serviceIcons = {
 const Landing = () => {
   const services = getServices();
   const pricing = getPricing();
+  const pricingRef = useRef(null);
+  const sectionRefs = useRef([]);
 
   // Build pricing table data: unique cloth types as rows, services as columns
   const clothTypes = [...new Set(pricing.map((p) => p.cloth_type))];
@@ -24,8 +26,45 @@ const Landing = () => {
     priceLookup[key] = p.price;
   });
 
+  const scrollToPricing = (e) => {
+    e.preventDefault();
+    if (pricingRef.current) {
+      const navHeight = 80;
+      const elementPosition = pricingRef.current.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.pageYOffset - navHeight;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('reveal-visible');
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    const sections = document.querySelectorAll('.hero, .services, .pricing, .how-it-works');
+    sections.forEach((section) => observer.observe(section));
+
+    return () => sections.forEach((section) => observer.unobserve(section));
+  }, []);
+
   return (
     <div className="landing-page">
+      {/* ── Dynamic Background Elements ── */}
+      <div className="bg-blur-blob blob-1"></div>
+      <div className="bg-blur-blob blob-2"></div>
+      <div className="bg-blur-blob blob-3"></div>
+
       {/* ── Navigation ── */}
       <nav className="landing-nav">
         <div className="container">
@@ -39,21 +78,21 @@ const Landing = () => {
       </nav>
 
       {/* ── Hero ── */}
-      <section className="hero">
+      <section className="hero reveal">
         <div className="container">
           <div className="hero-content">
             <h1>Premium Laundry Services <span className="text-gradient">Delivered to Your Door</span></h1>
             <p>Experience the most reliable and professional laundry management system. We take&nbsp;the load off your hands so you can focus on what matters.</p>
             <div className="hero-actions">
               <Link to="/login" state={{ mode: 'signup' }} className="primary-btn">Get Started Free</Link>
-              <a href="#pricing" className="secondary-btn">View Pricing</a>
+              <button onClick={scrollToPricing} className="secondary-btn">View Pricing</button>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── Services ── */}
-      <section className="services" id="services">
+      <section className="services reveal" id="services">
         <div className="container">
           <div className="section-header">
             <h2>Our Services</h2>
@@ -77,7 +116,7 @@ const Landing = () => {
       </section>
 
       {/* ── Pricing Table ── */}
-      <section className="pricing" id="pricing">
+      <section className="pricing reveal" id="pricing" ref={pricingRef}>
         <div className="container">
           <div className="section-header">
             <h2>Transparent Pricing</h2>
@@ -114,7 +153,7 @@ const Landing = () => {
       </section>
 
       {/* ── How It Works ── */}
-      <section className="how-it-works">
+      <section className="how-it-works reveal">
         <div className="container">
           <div className="section-header">
             <h2>How It Works</h2>
@@ -147,17 +186,14 @@ const Landing = () => {
       {/* ── Footer ── */}
       <footer className="landing-footer">
         <div className="container">
-          <div className="footer-content">
+          <div className="footer-inner">
             <div className="footer-brand">
               <span className="logo">FreshWash</span>
-              <p>Modernizing laundry management.</p>
+              <p>Premium Laundry Management</p>
             </div>
-            <div className="footer-links">
-              <Link to="/login">Support</Link>
-            </div>
-          </div>
-          <div className="footer-bottom">
-            <p>&copy; 2026 FreshWash. All rights reserved.</p>
+            <div className="footer-divider"></div>
+            <p className="footer-copyright">&copy; 2026 FreshWash. All rights reserved.</p>
+            <Link to="/login" className="footer-link">Need Help?</Link>
           </div>
         </div>
       </footer>
