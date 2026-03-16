@@ -37,9 +37,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
   const userMenu = [
     { name: 'Dashboard', path: '/user', icon: <LayoutDashboard size={20} /> },
     { name: 'My Orders', path: '/user/orders', icon: <ShoppingBag size={20} /> },
-    { name: 'Schedule Pickup', path: '/user/pickup', icon: <Truck size={20} /> },
     { name: 'Payments', path: '/user/payments', icon: <BarChart3 size={20} /> },
-    { name: 'Profile', path: '/user/profile', icon: <User size={20} /> },
+    { name: 'Report Lost Items', path: '/user/report-lost-items', icon: <Truck size={20} /> },
+    { name: 'Feedback', path: '/user/feedback', icon: <Layers size={20} /> },
   ];
 
   const menuItems = role === 'admin' ? adminMenu : role === 'employee' ? employeeMenu : userMenu;

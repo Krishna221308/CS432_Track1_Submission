@@ -15,7 +15,11 @@ import EmployeeOrders from './pages/employee/Orders';
 import EmployeePayments from './pages/employee/Payments';
 import EmployeeFeedback from './pages/employee/Feedback';
 import EmployeeLostItems from './pages/employee/LostItems';
-import UserDashboard from './pages/UserDashboard';
+import UserDashboard from './pages/user/Dashboard';
+import UserOrders from './pages/user/Orders';
+import UserPayments from './pages/user/Payments';
+import UserReportLostItems from './pages/user/ReportLostItems';
+import UserFeedback from './pages/user/Feedback';
 import { isAuthenticated } from './utils/auth';
 
 const PrivateRoute = ({ children }) => {
@@ -72,6 +76,10 @@ const routes = [
     ),
     children: [
       { path: '', element: <UserDashboard /> },
+      { path: 'orders', element: <UserOrders /> },
+      { path: 'payments', element: <UserPayments /> },
+      { path: 'report-lost-items', element: <UserReportLostItems /> },
+      { path: 'feedback', element: <UserFeedback /> },
     ],
   },
 ];

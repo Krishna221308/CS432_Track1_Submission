@@ -441,3 +441,79 @@ export const getAssignedEmployeeForOrder = (orderId) => {
 
   return null; // No assignment found
 };
+
+// User-specific helper functions
+const STORAGE_KEY_LOST_ITEMS = 'freshwash_lost_items';
+const STORAGE_KEY_FEEDBACKS = 'freshwash_feedbacks';
+
+export const getLostItems = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_LOST_ITEMS);
+  return stored ? JSON.parse(stored) : mockLostItems;
+};
+
+export const saveLostItems = (items) => {
+  localStorage.setItem(STORAGE_KEY_LOST_ITEMS, JSON.stringify(items));
+};
+
+export const getFeedbacks = () => {
+  const stored = localStorage.getItem(STORAGE_KEY_FEEDBACKS);
+  return stored ? JSON.parse(stored) : mockFeedbacks;
+};
+
+export const saveFeedbacks = (feedbacks) => {
+  localStorage.setItem(STORAGE_KEY_FEEDBACKS, JSON.stringify(feedbacks));
+};
+
+// Get data for specific member (user)
+export const getOrdersForMember = (memberId) => {
+  return mockOrders.filter((o) => o.member_id === memberId);
+};
+
+export const getPaymentsForMember = (memberId) => {
+  const memberOrders = getOrdersForMember(memberId);
+  const memberOrderIds = new Set(memberOrders.map((o) => o.order_id));
+  return mockPayments.filter((p) => memberOrderIds.has(p.order_id));
+};
+
+export const getFeedbacksForMember = (memberId) => {
+  const feedbacks = getFeedbacks();
+  return feedbacks.filter((f) => f.member_id === memberId);
+};
+
+export const getLostItemsForMember = (memberId) => {
+  const memberOrders = getOrdersForMember(memberId);
+  const memberOrderIds = new Set(memberOrders.map((o) => o.order_id));
+  const lostItems = getLostItems();
+  return lostItems.filter((i) => memberOrderIds.has(i.order_id));
+};
+
+// Add lost item report
+export const reportLostItem = (memberId, orderId, itemDescription) => {
+  const lostItems = getLostItems();
+  const newItem = {
+    lost_id: `LOST-${Date.now()}`,
+    order_id: orderId,
+    item_description: itemDescription,
+    reported_date: new Date().toISOString().split('T')[0],
+    compensation_amount: 0, // Admin will set this
+  };
+  lostItems.push(newItem);
+  saveLostItems(lostItems);
+  return newItem;
+};
+
+// Add feedback
+export const submitFeedback = (memberId, orderId, rating, comments) => {
+  const feedbacks = getFeedbacks();
+  const newFeedback = {
+    feedback_id: `FB-${Date.now()}`,
+    member_id: memberId,
+    order_id: orderId,
+    rating: rating,
+    comments: comments,
+    feedback_date: new Date().toISOString().split('T')[0],
+  };
+  feedbacks.push(newFeedback);
+  saveFeedbacks(feedbacks);
+  return newFeedback;
+};
