@@ -1,61 +1,71 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, UserPlus, Edit2, Trash2 } from 'lucide-react';
+import { getAllMembers, updateMember, deleteMember } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminMembers = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [selectedEmployee, setSelectedEmployee] = useState('');
-  const [showAssignModal, setShowAssignModal] = useState(false);
   const [editingMember, setEditingMember] = useState(null);
   const [memberToDelete, setMemberToDelete] = useState(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [members, setMembers] = useState([]);
+  const [formData, setFormData] = useState({ name: '', age: '', email: '', contact: '', address: '' });
   const addToast = useToast();
 
-  const [members, setMembers] = useState([]);
-  const [memberAssignments, setMemberAssignments] = useState([]);
-  const [employees, setEmployees] = useState([]);
-
   useEffect(() => {
-    // TODO: Fetch members, assignments, and employees from backend API
-    // setMembers(fetchedMembers);
-    // setMemberAssignments(fetchedAssignments);
-    // setEmployees(fetchedEmployees);
+    loadMembers();
   }, []);
+
+  const loadMembers = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllMembers();
+      setMembers(data);
+    } catch (error) {
+      addToast('Failed to load members: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredMembers = useMemo(() => {
     return members.filter((member) => {
       const matchesSearch =
-        member.member_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        member.member_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        member.member_id.toString().includes(searchTerm.toLowerCase()) ||
+        member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         member.email.toLowerCase().includes(searchTerm.toLowerCase());
       return matchesSearch;
     });
   }, [searchTerm, members]);
 
-  const getAssignedEmployeeName = (memberId) => {
-    // TODO: Find assigned employee from state/API
-    // const assignment = memberAssignments.find(a => a.member_id === memberId);
-    // const employee = employees.find(e => e.employee_id === assignment?.employee_id);
-    return 'Unassigned';
-  };
-
-  const handleAssignClick = (member) => {
+  const handleEditClick = (member) => {
     setEditingMember(member);
-    const assignment = memberAssignments.find((a) => a.member_id === member.member_id);
-    setSelectedEmployee(assignment ? assignment.employee_id : '');
-    setShowAssignModal(true);
+    setFormData({
+      name: member.name,
+      age: member.age,
+      email: member.email,
+      contact: member.contact,
+      address: member.address
+    });
+    setShowEditModal(true);
   };
 
-  const handleSaveAssignment = () => {
-    if (editingMember && selectedEmployee) {
-      // TODO: Call API to assign member to employee
-      // assignMemberToEmployee(editingMember.member_id, selectedEmployee);
-      addToast('Member assigned (Placeholder)', 'success');
-      setShowAssignModal(false);
-      setEditingMember(null);
-      setSelectedEmployee('');
+  const handleSaveEdit = async () => {
+    if (editingMember && formData.name && formData.email && formData.contact) {
+      try {
+        await updateMember(editingMember.member_id, formData);
+        addToast('Member updated successfully', 'success');
+        setShowEditModal(false);
+        setEditingMember(null);
+        loadMembers();
+      } catch (error) {
+        addToast('Failed to update member: ' + error.message, 'error');
+      }
+    } else {
+      addToast('Please fill in all required fields', 'error');
     }
   };
 
@@ -64,13 +74,17 @@ const AdminMembers = () => {
     setShowDeleteConfirm(true);
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (memberToDelete) {
-      // TODO: Call API to delete member
-      // deleteMember(memberToDelete.member_id);
-      addToast('Member deleted (Placeholder)', 'success');
-      setShowDeleteConfirm(false);
-      setMemberToDelete(null);
+      try {
+        await deleteMember(memberToDelete.member_id);
+        addToast('Member deleted successfully', 'success');
+        setShowDeleteConfirm(false);
+        setMemberToDelete(null);
+        loadMembers();
+      } catch (error) {
+        addToast('Failed to delete member: ' + error.message, 'error');
+      }
     }
   };
 
@@ -78,7 +92,7 @@ const AdminMembers = () => {
     <div className="admin-page">
       <header className="page-header">
         <h1>Members Management</h1>
-        <p>Assign members to employees for order handling</p>
+        <p>View and manage member profiles</p>
       </header>
 
       <div className="filters-section">
@@ -96,49 +110,42 @@ const AdminMembers = () => {
           <button className="filter-btn active">
             Total Members ({members.length})
           </button>
-          <button className="filter-btn">
-            Assigned ({memberAssignments.length})
-          </button>
-          <button className="filter-btn">
-            Unassigned ({members.length - memberAssignments.length})
-          </button>
         </div>
       </div>
 
       <div className="table-card">
         <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Member ID</th>
-                <th>Member Name</th>
-                <th>Email</th>
-                <th>Phone</th>
-                <th>Reg. Date</th>
-                <th>Assigned Employee</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredMembers.length > 0 ? (
-                filteredMembers.map((member) => (
-                  <tr key={member.member_id}>
-                    <td className="order-id">{member.member_id}</td>
-                    <td>{member.member_name}</td>
-                    <td>{member.email}</td>
-                    <td>{member.phone}</td>
-                    <td>{member.registration_date}</td>
-                    <td>
-                      <span className="assignment-badge">
-                        {getAssignedEmployeeName(member.member_id)}
-                      </span>
-                    </td>
-                    <td>
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center' }}>Loading members...</div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Member ID</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Contact</th>
+                  <th>Age</th>
+                  <th>Address</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredMembers.length > 0 ? (
+                  filteredMembers.map((member) => (
+                    <tr key={member.member_id}>
+                      <td className="order-id">{member.member_id}</td>
+                      <td>{member.name}</td>
+                      <td>{member.email}</td>
+                      <td>{member.contact}</td>
+                      <td>{member.age}</td>
+                      <td>{member.address}</td>
+                      <td>
                       <div className="action-buttons">
                         <button
                           className="action-btn edit-btn"
-                          onClick={() => handleAssignClick(member)}
-                          title="Assign to Employee"
+                          onClick={() => handleEditClick(member)}
+                          title="Edit Member"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -161,17 +168,18 @@ const AdminMembers = () => {
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* Assignment Modal */}
-      {showAssignModal && editingMember && (
-        <div className="modal-overlay" onClick={() => setShowAssignModal(false)}>
+      {/* Edit Member Modal */}
+      {showEditModal && editingMember && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Assign Member to Employee</h2>
-              <button className="close-modal" onClick={() => setShowAssignModal(false)}>
+              <h2>Edit Member</h2>
+              <button className="close-modal" onClick={() => setShowEditModal(false)}>
                 ×
               </button>
             </div>
@@ -179,52 +187,72 @@ const AdminMembers = () => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Member ID</label>
-                  <p>{editingMember.member_id}</p>
+                  <p style={{ margin: 0 }}>{editingMember.member_id}</p>
                 </div>
                 <div className="detail-item">
-                  <label>Member Name</label>
-                  <p>{editingMember.member_name}</p>
+                  <label htmlFor="name">Name *</label>
+                  <input
+                    id="name"
+                    className="form-input"
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  />
                 </div>
                 <div className="detail-item">
-                  <label>Email</label>
-                  <p>{editingMember.email}</p>
+                  <label htmlFor="age">Age</label>
+                  <input
+                    id="age"
+                    className="form-input"
+                    type="number"
+                    value={formData.age}
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                  />
                 </div>
                 <div className="detail-item">
-                  <label>Phone</label>
-                  <p>{editingMember.phone}</p>
+                  <label htmlFor="email">Email *</label>
+                  <input
+                    id="email"
+                    className="form-input"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  />
                 </div>
-
+                <div className="detail-item">
+                  <label htmlFor="contact">Contact *</label>
+                  <input
+                    id="contact"
+                    className="form-input"
+                    type="text"
+                    value={formData.contact}
+                    onChange={(e) => setFormData({ ...formData, contact: e.target.value })}
+                  />
+                </div>
                 <div className="detail-item full-width">
-                  <label htmlFor="employee-select">Assign to Employee</label>
-                  <select
-                    id="employee-select"
-                    className="form-select"
-                    value={selectedEmployee}
-                    onChange={(e) => setSelectedEmployee(e.target.value)}
-                  >
-                    <option value="">-- Select Employee --</option>
-                    {employees.map((employee) => (
-                      <option key={employee.employee_id} value={employee.employee_id}>
-                        {employee.employee_name} ({employee.role})
-                      </option>
-                    ))}
-                  </select>
+                  <label htmlFor="address">Address</label>
+                  <input
+                    id="address"
+                    className="form-input"
+                    type="text"
+                    value={formData.address}
+                    onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                  />
                 </div>
               </div>
 
               <div className="modal-footer">
                 <button
                   className="btn btn-secondary"
-                  onClick={() => setShowAssignModal(false)}
+                  onClick={() => setShowEditModal(false)}
                 >
                   Cancel
                 </button>
                 <button
                   className="btn btn-primary"
-                  onClick={handleSaveAssignment}
-                  disabled={!selectedEmployee}
+                  onClick={handleSaveEdit}
                 >
-                  Assign Member
+                  Save Changes
                 </button>
               </div>
             </div>

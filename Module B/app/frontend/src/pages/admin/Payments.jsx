@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Edit2 } from 'lucide-react';
+import { getAllPayments, updatePaymentStatus } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -8,11 +9,21 @@ const AdminPayments = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState('all');
   const [selectedPayment, setSelectedPayment] = useState(null);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [newStatus, setNewStatus] = useState('');
+  const [loading, setLoading] = useState(true);
   const addToast = useToast();
 
-  const loadData = () => {
-    // TODO: Fetch payments from backend API
-    // setPayments(fetchedPayments);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllPayments();
+      setPayments(data);
+    } catch (error) {
+      addToast('Failed to load payments: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -21,39 +32,46 @@ const AdminPayments = () => {
 
   const filteredPayments = payments.filter((payment) => {
     const matchesSearch =
-      (payment.payment_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.order_id || '').toLowerCase().includes(searchTerm.toLowerCase());
+      (payment.payment_id || '').toString().includes(searchTerm.toLowerCase()) ||
+      (payment.order_id || '').toString().includes(searchTerm.toLowerCase()) ||
+      (payment.member_name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesMode = filterMode === 'all' || payment.payment_mode === filterMode;
     return matchesSearch && matchesMode;
   });
 
-  const getStatusBadgeClass = (hasDate) => {
-    return `badge ${hasDate ? 'completed' : 'pending'}`;
+  const getStatusBadgeClass = (status) => {
+    return `badge ${status ? status.toLowerCase() : 'pending'}`;
   };
 
-  const handleUpdateStatus = (payment, isPaid) => {
-    const updates = {
-      payment_date: isPaid ? new Date().toISOString().split('T')[0] : null
-    };
-    
-    // TODO: Call API to update payment status
-    // updatePayment(payment.payment_id, updates);
-    addToast(`Payment marked as ${isPaid ? 'Paid' : 'Pending'} (Placeholder)`, 'success');
-    // loadData();
-    if (selectedPayment && selectedPayment.payment_id === payment.payment_id) {
-      setSelectedPayment({ ...selectedPayment, ...updates });
+  const handleEditPayment = (payment) => {
+    setSelectedPayment(payment);
+    setNewStatus(payment.status || 'pending');
+    setShowEditModal(true);
+  };
+
+  const handleUpdateStatus = async () => {
+    if (selectedPayment && newStatus) {
+      try {
+        await updatePaymentStatus(selectedPayment.payment_id, newStatus);
+        addToast('Payment status updated successfully', 'success');
+        setShowEditModal(false);
+        setSelectedPayment(null);
+        loadData();
+      } catch (error) {
+        addToast('Failed to update payment: ' + error.message, 'error');
+      }
     }
   };
 
   const totalRevenue = payments
-    .filter((p) => p.payment_date !== null)
+    .filter((p) => p.status === 'Success')
     .reduce((sum, p) => sum + (p.payment_amount || 0), 0);
   const pendingAmount = payments
-    .filter((p) => p.payment_date === null)
+    .filter((p) => p.status !== 'Success')
     .reduce((sum, p) => sum + (p.payment_amount || 0), 0);
 
   const getPaymentModes = () => {
-    return [...new Set(payments.map((p) => p.payment_mode))];
+    return ['all', ...new Set(payments.map((p) => p.payment_mode))];
   };
 
   return (
@@ -117,38 +135,43 @@ const AdminPayments = () => {
 
       <div className="table-card">
         <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Payment ID</th>
-                <th>Order ID</th>
-                <th>Amount</th>
-                <th>Mode</th>
-                <th>Payment Date</th>
-                <th>Status</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center' }}>Loading payments...</div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Payment ID</th>
+                  <th>Order ID</th>
+                  <th>Member Name</th>
+                  <th>Amount</th>
+                  <th>Mode</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
               {filteredPayments.length > 0 ? (
                 filteredPayments.map((payment) => (
                   <tr key={payment.payment_id}>
                     <td className="payment-id">{payment.payment_id}</td>
                     <td>{payment.order_id}</td>
+                    <td>{payment.member_name}</td>
                     <td className="amount">₹{(payment.payment_amount || 0).toFixed(2)}</td>
-                    <td>{(payment.payment_mode || '').replace('_', ' ')}</td>
-                    <td>{payment.payment_date || '—'}</td>
+                    <td>{payment.payment_mode}</td>
+                    <td>{payment.payment_date ? new Date(payment.payment_date).toLocaleDateString() : 'N/A'}</td>
                     <td>
-                      <span className={getStatusBadgeClass(payment.payment_date)}>
-                        {payment.payment_date ? 'Paid' : 'Pending'}
+                      <span className={getStatusBadgeClass(payment.status)}>
+                        {payment.status || 'Pending'}
                       </span>
                     </td>
                     <td>
                       <div className="action-buttons">
                         <button
                           className="action-btn edit-btn icon-only"
-                          onClick={() => setSelectedPayment(payment)}
-                          title="Manage Payment"
+                          onClick={() => handleEditPayment(payment)}
+                          title="Update Payment Status"
                         >
                           <Edit2 size={16} />
                         </button>
@@ -158,23 +181,24 @@ const AdminPayments = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="7" className="no-data">
+                  <td colSpan="8" className="no-data">
                     No payments found
                   </td>
                 </tr>
               )}
             </tbody>
-          </table>
+            </table>
+          )}
         </div>
       </div>
 
-      {/* Payment Management Modal */}
-      {selectedPayment && (
-        <div className="modal-overlay" onClick={() => setSelectedPayment(null)}>
+      {/* Payment Edit Modal */}
+      {showEditModal && selectedPayment && (
+        <div className="modal-overlay" onClick={() => setShowEditModal(false)}>
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Manage Payment</h2>
-              <button className="close-modal" onClick={() => setSelectedPayment(null)}>
+              <h2>Update Payment Status</h2>
+              <button className="close-modal" onClick={() => setShowEditModal(false)}>
                 ×
               </button>
             </div>
@@ -182,39 +206,42 @@ const AdminPayments = () => {
               <div className="detail-grid">
                 <div className="detail-item">
                   <label>Payment ID</label>
-                  <p style={{ fontWeight: 600 }}>{selectedPayment.payment_id}</p>
+                  <p style={{ fontWeight: 600, margin: 0 }}>{selectedPayment.payment_id}</p>
                 </div>
                 <div className="detail-item">
                   <label>Order ID</label>
-                  <p style={{ fontWeight: 600 }}>{selectedPayment.order_id}</p>
+                  <p style={{ fontWeight: 600, margin: 0 }}>{selectedPayment.order_id}</p>
                 </div>
                 <div className="detail-item">
                   <label>Amount</label>
-                  <p className="amount-highlight" style={{ fontSize: '1.2rem' }}>₹{(selectedPayment.payment_amount || 0).toFixed(2)}</p>
+                  <p style={{ fontSize: '1.2rem', fontWeight: 600, color: '#10b981', margin: 0 }}>₹{(selectedPayment.payment_amount || 0).toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Payment Mode</label>
-                  <p>{(selectedPayment.payment_mode || '').replace('_', ' ')}</p>
+                  <p style={{ margin: 0 }}>{selectedPayment.payment_mode || 'N/A'}</p>
                 </div>
                 <div className="detail-item">
                   <label>Payment Date</label>
-                  <p>{selectedPayment.payment_date || 'Pending'}</p>
+                  <p style={{ margin: 0 }}>{selectedPayment.payment_date ? new Date(selectedPayment.payment_date).toLocaleDateString() : 'Pending'}</p>
                 </div>
-                <div className="detail-item">
-                  <label htmlFor="payment-status-select">Status</label>
+                <div className="detail-item full-width">
+                  <label htmlFor="payment-status-select">Update Status *</label>
                   <select 
-                    id="payment-status-select" 
+                    id="payment-status-select"
                     className="form-select"
-                    value={selectedPayment.payment_date ? 'paid' : 'pending'}
-                    onChange={(e) => handleUpdateStatus(selectedPayment, e.target.value === 'paid')}
+                    value={newStatus}
+                    onChange={(e) => setNewStatus(e.target.value)}
                   >
-                    <option value="pending">Pending</option>
-                    <option value="paid">Paid</option>
+                    <option value="">-- Select Status --</option>
+                    <option value="Pending">Pending</option>
+                    <option value="Success">Success</option>
+                    <option value="Failed">Failed</option>
                   </select>
                 </div>
               </div>
-              <div className="modal-footer" style={{ marginTop: '20px' }}>
-                <button className="btn btn-primary" onClick={() => setSelectedPayment(null)}>Done</button>
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowEditModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleUpdateStatus}>Update Status</button>
               </div>
             </div>
           </div>

@@ -1,46 +1,65 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Plus, Trash2, Edit, X } from 'lucide-react';
+import { getAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminEmployees = () => {
   const [employees, setEmployees] = useState([]);
+  const [loading, setLoading] = useState(true);
   const addToast = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     employee_id: '',
-    employee_name: '',
+    name: '',
     role: '',
-    contact_number: '',
+    contact: '',
     joining_date: '',
   });
 
   useEffect(() => {
-    // TODO: Fetch employees from backend API
-    // setEmployees(fetchedEmployees);
+    loadEmployees();
   }, []);
+
+  const loadEmployees = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllEmployees();
+      setEmployees(data);
+    } catch (error) {
+      addToast('Failed to load employees: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredEmployees = employees.filter((emp) => {
     const matchesSearch =
-      emp.employee_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      emp.contact_number.toLowerCase().includes(searchTerm.toLowerCase());
+      emp.contact.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
   const handleOpenModal = (employee = null) => {
     if (employee) {
       setIsEditing(true);
-      setFormData(employee);
+      setFormData({
+        employee_id: employee.employee_id,
+        name: employee.name,
+        role: employee.role,
+        contact: employee.contact,
+        joining_date: employee.joining_date,
+      });
     } else {
       setIsEditing(false);
       setFormData({
         employee_id: '',
-        employee_name: '',
+        name: '',
         role: '',
-        contact_number: '',
+        contact: '',
         joining_date: new Date().toISOString().split('T')[0],
       });
     }
@@ -60,29 +79,42 @@ const AdminEmployees = () => {
     }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (isEditing) {
-      // TODO: Call API to update employee
-      // updateEmployee(formData.employee_id, formData);
-      addToast('Employee updated successfully', 'success');
-    } else {
-      // TODO: Call API to add employee
-      // addEmployee(formData);
-      addToast('Employee added successfully', 'success');
+    try {
+      if (isEditing) {
+        await updateEmployee(formData.employee_id, {
+          name: formData.name,
+          role: formData.role,
+          contact: formData.contact
+        });
+        addToast('Employee updated successfully', 'success');
+      } else {
+        await createEmployee({
+          name: formData.name,
+          role: formData.role,
+          contact: formData.contact,
+          joining_date: formData.joining_date
+        });
+        addToast('Employee added successfully', 'success');
+      }
+      handleCloseModal();
+      loadEmployees();
+    } catch (error) {
+      addToast('Failed to save employee: ' + error.message, 'error');
     }
-
-    // TODO: Refresh list after API call
-    // setEmployees(updatedList);
-    handleCloseModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this employee?')) {
-      // TODO: Call API to delete employee
-      // deleteEmployee(id);
-      addToast('Employee deleted (Placeholder)', 'info');
+      try {
+        await deleteEmployee(id);
+        addToast('Employee deleted successfully', 'success');
+        loadEmployees();
+      } catch (error) {
+        addToast('Failed to delete employee: ' + error.message, 'error');
+      }
     }
   };
 
@@ -129,51 +161,53 @@ const AdminEmployees = () => {
 
       <div className="table-card">
         <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Employee Name</th>
-                <th>Role</th>
-                <th>Contact Number</th>
-                <th>Joining Date</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredEmployees.length > 0 ? (
-                filteredEmployees.map((emp) => (
-                  <tr key={emp.employee_id}>
-                    <td className="emp-name">{emp.employee_name}</td>
-                    <td>{emp.role}</td>
-                    <td>{emp.contact_number}</td>
-                    <td>{emp.joining_date}</td>
-                    <td className="actions-cell">
-                      <button
-                        className="action-btn edit-btn"
-                        onClick={() => handleOpenModal(emp)}
-                        title="Edit"
-                      >
-                        <Edit size={16} />
-                      </button>
-                      <button
-                        className="action-btn delete-btn"
-                        onClick={() => handleDelete(emp.employee_id)}
-                        title="Delete"
-                      >
-                        <Trash2 size={16} />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              ) : (
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center' }}>Loading employees...</div>
+          ) : (
+            <table className="data-table">
+              <thead>
                 <tr>
-                  <td colSpan="5" className="no-data">
-                    No employees found
-                  </td>
+                  <th>Employee Name</th>
+                  <th>Role</th>
+                  <th>Contact Number</th>
+                  <th>Joining Date</th>
+                  <th>Actions</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredEmployees.length > 0 ? (
+                  filteredEmployees.map((emp) => (
+                    <tr key={emp.employee_id}>
+                      <td className="emp-name">{emp.name}</td>
+                      <td>{emp.role}</td>
+                      <td>{emp.contact}</td>
+                      <td>{emp.joining_date ? new Date(emp.joining_date).toLocaleDateString() : 'N/A'}</td>
+                      <td className="actions-cell">
+                        <button
+                          className="action-btn edit-btn"
+                          onClick={() => handleOpenModal(emp)}
+                          title="Edit"
+                        >
+                          <Edit size={16} />
+                        </button>
+                        <button
+                          className="action-btn delete-btn"
+                          onClick={() => handleDelete(emp.employee_id)}
+                          title="Delete"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="no-data">No employees found</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
 
@@ -194,8 +228,8 @@ const AdminEmployees = () => {
                   <label>Employee Name *</label>
                   <input
                     type="text"
-                    name="employee_name"
-                    value={formData.employee_name}
+                    name="name"
+                    value={formData.name}
                     onChange={handleInputChange}
                     required
                     placeholder="Enter employee name"
@@ -218,8 +252,8 @@ const AdminEmployees = () => {
                   <label>Contact Number *</label>
                   <input
                     type="tel"
-                    name="contact_number"
-                    value={formData.contact_number}
+                    name="contact"
+                    value={formData.contact}
                     onChange={handleInputChange}
                     required
                     placeholder="555-0000"

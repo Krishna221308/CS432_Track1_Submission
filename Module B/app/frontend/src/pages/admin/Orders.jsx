@@ -1,25 +1,29 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
+import { getAllOrders, updateOrderStatus } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
-  const [members, setMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [orderToDelete, setOrderToDelete] = useState(null);
   const [editingOrder, setEditingOrder] = useState(null);
-  const [newOrderData, setNewOrderData] = useState({ member_id: '', pickup_time: '', total_amount: '', order_status: 'pending' });
+  const [newStatus, setNewStatus] = useState('');
+  const [loading, setLoading] = useState(true);
   const addToast = useToast();
 
-  const loadData = () => {
-    // TODO: Fetch orders and members from backend API
-    // setOrders(fetchedOrders);
-    // setMembers(fetchedMembers);
+  const loadData = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllOrders();
+      setOrders(data);
+    } catch (error) {
+      addToast('Failed to load orders: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -28,9 +32,9 @@ const AdminOrders = () => {
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch =
-      (order.order_id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (order.member_id || '').toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = filterStatus === 'all' || order.order_status === filterStatus;
+      (order.order_id || '').toString().includes(searchTerm.toLowerCase()) ||
+      (order.member_name || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = filterStatus === 'all' || order.order_status.toLowerCase() === filterStatus.toLowerCase();
     return matchesSearch && matchesStatus;
   });
 
@@ -38,81 +42,32 @@ const AdminOrders = () => {
     return `badge ${status}`;
   };
 
-  const getStatusColor = (status) => {
-    const colors = {
-      pending: '#f59e0b',
-      processing: '#3b82f6',
-      completed: '#10b981',
-    };
-    return colors[status] || '#6b7280';
-  };
-
-  const handleAddOrder = () => {
-    if (!newOrderData.member_id || !newOrderData.pickup_time || !newOrderData.total_amount) {
-      addToast('Please fill in all required fields', 'error');
-      return;
-    }
-    try {
-      // TODO: Call API to add order
-      // addOrder(newOrderData);
-      addToast('Order added (Placeholder)', 'success');
-      setShowAddModal(false);
-      setNewOrderData({ member_id: '', pickup_time: '', total_amount: '', order_status: 'pending' });
-      // loadData();
-    } catch (error) {
-      addToast('Failed to add order', 'error');
-    }
-  };
-
   const handleEditClick = (order) => {
     setEditingOrder(order);
-    setNewOrderData({ member_id: order.member_id, pickup_time: order.pickup_time, total_amount: order.total_amount, order_status: order.order_status });
+    setNewStatus(order.order_status);
     setShowEditModal(true);
   };
 
-  const handleUpdateOrder = () => {
-    if (editingOrder) {
-      // TODO: Call API to update order status
-      // updateOrder(editingOrder.order_id, { order_status: newOrderData.order_status });
-      addToast('Order status updated (Placeholder)', 'success');
-      setShowEditModal(false);
-      setEditingOrder(null);
-      setNewOrderData({ member_id: '', pickup_time: '', total_amount: '', order_status: 'pending' });
-      // loadData();
-    }
-  };
-
-  const handleDeleteClick = (order) => {
-    setOrderToDelete(order);
-    setShowDeleteConfirm(true);
-  };
-
-  const handleConfirmDelete = () => {
-    if (orderToDelete) {
-      // TODO: Call API to delete order
-      // deleteOrder(orderToDelete.order_id);
-      addToast('Order deleted (Placeholder)', 'success');
-      setShowDeleteConfirm(false);
-      setOrderToDelete(null);
-      // loadData();
+  const handleUpdateOrder = async () => {
+    if (editingOrder && newStatus) {
+      try {
+        await updateOrderStatus(editingOrder.order_id, newStatus);
+        addToast('Order status updated successfully', 'success');
+        setShowEditModal(false);
+        setEditingOrder(null);
+        loadData();
+      } catch (error) {
+        addToast('Failed to update order: ' + error.message, 'error');
+      }
     }
   };
 
   return (
     <div className="admin-page">
       <header className="page-header">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
-          <div>
-            <h1>Orders Management</h1>
-            <p>Track and manage all customer laundry orders</p>
-          </div>
-          <button
-            className="btn-add-order"
-            onClick={() => setShowAddModal(true)}
-            title="Add new order"
-          >
-            <Plus size={18} /> Add Order
-          </button>
+        <div>
+          <h1>Orders Management</h1>
+          <p>Track and manage all customer laundry orders</p>
         </div>
       </header>
 
@@ -138,135 +93,79 @@ const AdminOrders = () => {
             className={`filter-btn ${filterStatus === 'pending' ? 'active' : ''}`}
             onClick={() => setFilterStatus('pending')}
           >
-            Pending ({orders.filter((o) => o.order_status === 'pending').length})
+            Pending ({orders.filter((o) => o.order_status.toLowerCase() === 'pending').length})
           </button>
           <button
             className={`filter-btn ${filterStatus === 'processing' ? 'active' : ''}`}
             onClick={() => setFilterStatus('processing')}
           >
-            Processing ({orders.filter((o) => o.order_status === 'processing').length})
+            Processing ({orders.filter((o) => o.order_status.toLowerCase() === 'processing').length})
           </button>
           <button
-            className={`filter-btn ${filterStatus === 'completed' ? 'active' : ''}`}
-            onClick={() => setFilterStatus('completed')}
+            className={`filter-btn ${filterStatus === 'delivered' ? 'active' : ''}`}
+            onClick={() => setFilterStatus('delivered')}
           >
-            Completed ({orders.filter((o) => o.order_status === 'completed').length})
+            Delivered ({orders.filter((o) => o.order_status.toLowerCase() === 'delivered').length})
           </button>
         </div>
       </div>
 
       <div className="table-card">
         <div className="table-container">
-          <table className="data-table">
-            <thead>
-              <tr>
-                <th>Order ID</th>
-                <th>Member ID</th>
-                <th>Order Date</th>
-                <th>Pickup Time</th>
-                <th>Amount</th>
-                <th>Order Status</th>
-                <th>Payment Status</th>
-                <th>Assigned Employee</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredOrders.length > 0 ? (
-                filteredOrders.map((order) => (
-                  <tr key={order.order_id}>
-                    <td className="order-id">{order.order_id}</td>
-                    <td>{order.member_id}</td>
-                    <td>{order.order_date}</td>
-                    <td>{order.pickup_time}</td>
-                    <td className="amount">₹{(order.total_amount || 0).toFixed(2)}</td>
-                    <td>
-                      <span className={getStatusBadgeClass(order.order_status)}>
-                        {(order.order_status || 'pending').charAt(0).toUpperCase() + (order.order_status || 'pending').slice(1)}
-                      </span>
-                    </td>
-                    <td>
-                      <span className={getStatusBadgeClass(order.payment_status)}>
-                        {(order.payment_status || 'pending').charAt(0).toUpperCase() + (order.payment_status || 'pending').slice(1)}
-                      </span>
-                    </td>
-                    <td>
-                      <span className="employee-badge">
-                        {/* TODO: Fetch assignment info */}
-                        Unassigned
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button
-                          className="action-btn edit-btn icon-only"
-                          onClick={() => handleEditClick(order)}
-                          title="Manage Order"
-                        >
-                          <Edit2 size={16} />
-                        </button>
-                        <button
-                          className="action-btn delete-btn"
-                          onClick={() => handleDeleteClick(order)}
-                          title="Delete Order"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
+          {loading ? (
+            <div style={{ padding: '40px', textAlign: 'center', fontSize: '16px' }}>Loading orders...</div>
+          ) : (
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Order ID</th>
+                  <th>Member Name</th>
+                  <th>Order Date</th>
+                  <th>Pickup Time</th>
+                  <th>Amount</th>
+                  <th>Order Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredOrders.length > 0 ? (
+                  filteredOrders.map((order) => (
+                    <tr key={order.order_id}>
+                      <td className="order-id">{order.order_id}</td>
+                      <td>{order.member_name}</td>
+                      <td>{new Date(order.order_date).toLocaleDateString()}</td>
+                      <td>{new Date(order.pickup_time).toLocaleDateString()}</td>
+                      <td className="amount">₹{(order.total_amount || 0).toFixed(2)}</td>
+                      <td>
+                        <span className={getStatusBadgeClass(order.order_status)}>
+                          {(order.order_status || 'Unknown').charAt(0).toUpperCase() + (order.order_status || 'Unknown').slice(1)}
+                        </span>
+                      </td>
+                      <td>
+                        <div className="action-buttons">
+                          <button
+                            className="action-btn edit-btn icon-only"
+                            onClick={() => handleEditClick(order)}
+                            title="Manage Order"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan="7" className="no-data">
+                      No orders found
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="9" className="no-data">
-                    No orders found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
-
-      {/* Add Order Modal */}
-      {showAddModal && (
-        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
-          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h2>Add New Order</h2>
-              <button className="close-modal" onClick={() => setShowAddModal(false)}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="detail-grid">
-                <div className="detail-item full-width">
-                  <label htmlFor="member-select">Member *</label>
-                  <select
-                    id="member-select"
-                    className="form-select"
-                    value={newOrderData.member_id}
-                    onChange={(e) => setNewOrderData({ ...newOrderData, member_id: e.target.value })}
-                  >
-                    <option value="">-- Select Member --</option>
-                    {members.map((m) => <option key={m.member_id} value={m.member_id}>{m.member_name}</option>)}
-                  </select>
-                </div>
-                <div className="detail-item">
-                  <label htmlFor="pickup-time">Pickup Time *</label>
-                  <input id="pickup-time" type="text" className="form-select" placeholder="e.g., 10:00 AM" value={newOrderData.pickup_time} onChange={(e) => setNewOrderData({ ...newOrderData, pickup_time: e.target.value })} />
-                </div>
-                <div className="detail-item">
-                  <label htmlFor="total-amount">Amount (₹) *</label>
-                  <input id="total-amount" type="number" className="form-select" placeholder="0.00" value={newOrderData.total_amount} onChange={(e) => setNewOrderData({ ...newOrderData, total_amount: e.target.value })} step="0.01" />
-                </div>
-              </div>
-              <div className="modal-footer">
-                <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
-                <button className="btn btn-primary" onClick={handleAddOrder}>Add Order</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Edit/Manage Order Modal */}
       {showEditModal && editingOrder && (
@@ -309,10 +208,13 @@ const AdminOrders = () => {
                 </div>
                 <div className="detail-item">
                   <label htmlFor="status-select">Order Status *</label>
-                  <select id="status-select" className="form-select" value={newOrderData.order_status} onChange={(e) => setNewOrderData({ ...newOrderData, order_status: e.target.value })}>
-                    <option value="pending">Pending</option>
-                    <option value="processing">Processing</option>
-                    <option value="completed">Completed</option>
+                  <select id="status-select" className="form-select" value={newStatus} onChange={(e) => setNewStatus(e.target.value)}>
+                    <option value="Pending">Pending</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Washing">Washing</option>
+                    <option value="Ready for Delivery">Ready for Delivery</option>
+                    <option value="Picked Up">Picked Up</option>
+                    <option value="Delivered">Delivered</option>
                   </select>
                 </div>
               </div>

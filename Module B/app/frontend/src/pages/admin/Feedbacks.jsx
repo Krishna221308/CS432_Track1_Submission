@@ -1,28 +1,44 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Star } from 'lucide-react';
+import { getAllFeedbacks } from '../../utils/adminApi';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminFeedbacks = () => {
   const [feedbacks, setFeedbacks] = useState([]);
-  
-  useEffect(() => {
-    // TODO: Fetch feedbacks from backend API
-    // setFeedbacks(fetchedFeedbacks);
-  }, []);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRating, setFilterRating] = useState('all');
+  const addToast = useToast();
+  
+  useEffect(() => {
+    loadFeedbacks();
+  }, []);
+
+  const loadFeedbacks = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllFeedbacks();
+      setFeedbacks(data);
+    } catch (error) {
+      addToast('Failed to load feedbacks: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredFeedbacks = feedbacks.filter((feedback) => {
     const matchesSearch =
-      feedback.member_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      feedback.order_id.toLowerCase().includes(searchTerm.toLowerCase());
+      feedback.member_id.toString().includes(searchTerm.toLowerCase()) ||
+      feedback.order_id.toString().includes(searchTerm.toLowerCase()) ||
+      feedback.member_name.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesRating = filterRating === 'all' || feedback.rating === parseInt(filterRating);
     return matchesSearch && matchesRating;
   });
 
-  const averageRating = (
-    feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
-  ).toFixed(1);
+  const averageRating = feedbacks.length > 0
+    ? (feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length).toFixed(1)
+    : 0;
 
   const getRatingStars = (rating) => {
     return [...Array(5)].map((_, i) => (
@@ -36,6 +52,7 @@ const AdminFeedbacks = () => {
       />
     ));
   };
+
 
   return (
     <div className="admin-page">
@@ -95,12 +112,14 @@ const AdminFeedbacks = () => {
       </div>
 
       <div className="feedbacks-grid">
-        {filteredFeedbacks.length > 0 ? (
+        {loading ? (
+          <div style={{ padding: '40px', textAlign: 'center', gridColumn: '1 / -1' }}>Loading feedbacks...</div>
+        ) : filteredFeedbacks.length > 0 ? (
           filteredFeedbacks.map((feedback) => (
             <div key={feedback.feedback_id} className="feedback-card">
               <div className="feedback-header">
                 <div>
-                  <h3>Member: {feedback.member_id}</h3>
+                  <h3>Member: {feedback.member_name}</h3>
                   <p className="feedback-order">Order: {feedback.order_id}</p>
                 </div>
                 <div className="rating-display">{feedback.rating}.0</div>
@@ -110,7 +129,7 @@ const AdminFeedbacks = () => {
 
               <p className="feedback-comment">{feedback.comments}</p>
 
-              <p className="feedback-date">{feedback.feedback_date}</p>
+              <p className="feedback-date">{feedback.feedback_date ? new Date(feedback.feedback_date).toLocaleDateString() : 'N/A'}</p>
             </div>
           ))
         ) : (

@@ -1,22 +1,38 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Eye } from 'lucide-react';
+import { Search, Eye, Edit } from 'lucide-react';
+import { getAllLostItems } from '../../utils/adminApi';
+import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminLostItems = () => {
   const [lostItems, setLostItems] = useState([]);
-
-  useEffect(() => {
-    // TODO: Fetch lost items from backend API
-    // setLostItems(fetchedItems);
-  }, []);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedItem, setSelectedItem] = useState(null);
+  const addToast = useToast();
+
+  useEffect(() => {
+    loadLostItems();
+  }, []);
+
+  const loadLostItems = async () => {
+    setLoading(true);
+    try {
+      const data = await getAllLostItems();
+      setLostItems(data);
+    } catch (error) {
+      addToast('Failed to load lost items: ' + error.message, 'error');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const filteredItems = lostItems.filter((item) => {
     const matchesSearch =
-      item.lost_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.order_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.item_description.toLowerCase().includes(searchTerm.toLowerCase());
+      item.lost_item_id.toString().includes(searchTerm.toLowerCase()) ||
+      item.order_id.toString().includes(searchTerm.toLowerCase()) ||
+      item.item_description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.member_name.toLowerCase().includes(searchTerm.toLowerCase());
     return matchesSearch;
   });
 
@@ -36,7 +52,7 @@ const AdminLostItems = () => {
         <div className="stat-box">
           <h3>Total Compensation</h3>
           <p className="stat-value" style={{ color: '#f59e0b' }}>
-            ${lostItems.reduce((sum, i) => sum + i.compensation_amount, 0).toFixed(2)}
+            ₹{lostItems.reduce((sum, i) => sum + i.compensation_amount, 0).toFixed(2)}
           </p>
           <span className="stat-label">Amount</span>
         </div>
@@ -59,7 +75,7 @@ const AdminLostItems = () => {
           <table className="data-table">
             <thead>
               <tr>
-                <th>Lost ID</th>
+                <th>Claim ID</th>
                 <th>Order ID</th>
                 <th>Item Description</th>
                 <th>Reported Date</th>
@@ -68,14 +84,18 @@ const AdminLostItems = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.length > 0 ? (
+              {loading ? (
+                <tr>
+                  <td colSpan="6" className="no-data">Loading...</td>
+                </tr>
+              ) : filteredItems.length > 0 ? (
                 filteredItems.map((item) => (
-                  <tr key={item.lost_id}>
-                    <td className="item-id">{item.lost_id}</td>
+                  <tr key={item.lost_item_id}>
+                    <td className="item-id">{item.lost_item_id}</td>
                     <td>{item.order_id}</td>
                     <td>{item.item_description}</td>
-                    <td>{item.reported_date}</td>
-                    <td className="amount">${item.compensation_amount.toFixed(2)}</td>
+                    <td>{new Date(item.reported_date).toLocaleDateString()}</td>
+                    <td className="amount">₹{item.compensation_amount.toFixed(2)}</td>
                     <td>
                       <button
                         className="action-btn view-btn"
@@ -112,8 +132,8 @@ const AdminLostItems = () => {
             <div className="modal-body">
               <div className="detail-grid">
                 <div className="detail-item">
-                  <label>Lost ID</label>
-                  <p>{selectedItem.lost_id}</p>
+                  <label>Claim ID</label>
+                  <p>{selectedItem.lost_item_id}</p>
                 </div>
                 <div className="detail-item">
                   <label>Order ID</label>
@@ -125,11 +145,11 @@ const AdminLostItems = () => {
                 </div>
                 <div className="detail-item">
                   <label>Reported Date</label>
-                  <p>{selectedItem.reported_date}</p>
+                  <p>{new Date(selectedItem.reported_date).toLocaleDateString()}</p>
                 </div>
                 <div className="detail-item">
                   <label>Compensation Amount</label>
-                  <p className="amount-highlight">${selectedItem.compensation_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">₹{selectedItem.compensation_amount.toFixed(2)}</p>
                 </div>
               </div>
             </div>
