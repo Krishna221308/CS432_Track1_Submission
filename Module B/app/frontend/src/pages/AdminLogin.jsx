@@ -18,7 +18,8 @@ const AdminLogin = () => {
 
     const performLogin = async () => {
       try {
-        const authenticatedRole = await login(username, password);
+        // Pass 'admin' as expected_role - server will validate
+        const authenticatedRole = await login(username, password, 'admin');
         
         if (authenticatedRole === 'admin') {
           addToast('Welcome back, Admin!', 'success');

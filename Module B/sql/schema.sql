@@ -38,22 +38,23 @@ SET search_path TO freshwash, public;
 -- =============================================================================
 
 -- 1a. Roles  ---------------------------------------------------------------
--- Defines access levels: 'Admin' and 'Regular User'
+-- Defines access levels: 'Admin', 'User', and 'Employee'
 CREATE TABLE freshwash.roles (
     role_id     SERIAL          PRIMARY KEY,
     role_name   VARCHAR(50)     NOT NULL UNIQUE,
     description VARCHAR(255),
 
-    CONSTRAINT chk_roles_name CHECK (role_name IN ('Admin', 'Regular User'))
+    CONSTRAINT chk_roles_name CHECK (role_name IN ('Admin', 'User', 'Employee'))
 );
 
 COMMENT ON TABLE  freshwash.roles IS 'RBAC: application-level access roles.';
-COMMENT ON COLUMN freshwash.roles.role_name IS 'Allowed values: Admin | Regular User';
+COMMENT ON COLUMN freshwash.roles.role_name IS 'Allowed values: Admin | User | Employee';
 
 -- Seed default roles
 INSERT INTO freshwash.roles (role_id, role_name, description) VALUES
-    (1, 'Admin',        'Full access to all system features and data.'),
-    (2, 'Regular User', 'Limited access: view own orders and profile only.');
+    (1, 'Admin',    'Full access to all system features and data.'),
+    (2, 'User',     'Limited access: view own orders and profile only.'),
+    (3, 'Employee', 'Staff access: manage orders, laundry operations, and reports.');
 
 
 -- 1b. Clothing Type  -------------------------------------------------------
@@ -198,10 +199,13 @@ CREATE INDEX idx_users_username ON freshwash.users (username);
 
 -- Seed sample users (passwords are plain text for simplicity in this assignments)
 -- Now includes member_id to link login accounts to profiles
-INSERT INTO freshwash.users (user_id, username, password_hash, role_id, member_id) VALUES
-    (1, 'admin',         'nimda',                                                       1, NULL),
-    (2, 'aarav.patel',   '$2b$12$userHashPlaceholderAarav00000000000000000000000000000', 2, 1),
-    (3, 'vivaan.singh',  '$2b$12$userHashPlaceholderVivaan0000000000000000000000000000', 2, 2);
+INSERT INTO freshwash.users (user_id, username, password_hash, role_id, member_id, employee_id) VALUES
+    (1, 'admin',         'nimda',                                                       1, NULL, NULL),
+    (2, 'aarav.patel',   '$2b$12$userHashPlaceholderAarav00000000000000000000000000000', 2, 1, NULL),
+    (3, 'vivaan.singh',  '$2b$12$userHashPlaceholderVivaan0000000000000000000000000000', 2, 2, NULL),
+    (4, 'ramesh.kumar',  'emp123',                                                      3, NULL, 1),
+    (5, 'suresh.yadav',  'emp123',                                                      3, NULL, 2),
+    (6, 'anita.desai',   'emp123',                                                      3, NULL, 3);
 
 
 -- =============================================================================

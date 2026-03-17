@@ -1,7 +1,28 @@
 from flask import Blueprint, jsonify, request
 from db import get_connection
+from auth import add_employee
+from psycopg2 import IntegrityError, ProgrammingError, OperationalError
 
 employees_bp = Blueprint('admin_employees', __name__)
+
+def handle_db_error(error, context="operation"):
+    """Convert database errors to user-friendly messages"""
+    error_str = str(error).lower()
+    
+    if isinstance(error, IntegrityError):
+        if 'unique' in error_str or 'duplicate' in error_str:
+            return 'This record already exists'
+        else:
+            return 'This data conflicts with existing records'
+    
+    if isinstance(error, (ProgrammingError, OperationalError)):
+        return 'Database operation failed. Please try again.'
+    
+    if 'not null' in error_str:
+        return 'Missing required information'
+    
+    print(f"Database error during {context}: {error}")
+    return 'An error occurred. Please try again.'
 
 @employees_bp.route('/employees', methods=['GET'])
 def get_all_employees():
@@ -61,22 +82,55 @@ def get_employee_details(employee_id):
 
 @employees_bp.route('/employees', methods=['POST'])
 def create_employee():
-    """Create new employee"""
+    """
+    Create new employee with user account
+    
+    Request body:
+    {
+        "name": string,
+        "role": string,
+        "contact_number": string,
+        "joining_date": string (YYYY-MM-DD),
+        "username": string (optional - for user account creation),
+        "password": string (optional - for user account creation)
+    }
+    """
     data = request.json
+    
+    # If username and password provided, create with user account
+    if data.get('username') and data.get('password'):
+        try:
+            result = add_employee({
+                'name': data['name'],
+                'contact_number': data['contact_number'],
+                'role': data['role'],
+                'joining_date': data['joining_date'],
+                'username': data['username'],
+                'password': data['password']
+            })
+            return jsonify({"message": "Employee created with user account", "data": result}), 201
+        except Exception as e:
+            return jsonify({"error": str(e)}), 400
+    
+    # Otherwise create employee only
     conn = get_connection()
     cur = conn.cursor()
     try:
         cur.execute(
             "INSERT INTO freshwash.employee (employee_name, role, contact_number, joining_date) "
             "VALUES (%s, %s, %s, %s) RETURNING employee_id",
-            (data['name'], data['role'], data['contact'], data['joining_date'])
+            (data['name'], data['role'], data['contact_number'], data['joining_date'])
         )
         employee_id = cur.fetchone()[0]
         conn.commit()
         return jsonify({"message": "Employee created", "employee_id": employee_id}), 201
+    except (IntegrityError, ProgrammingError, OperationalError) as e:
+        conn.rollback()
+        return jsonify({"error": handle_db_error(e, "employee creation")}), 400
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": str(e)}), 400
+        print(f"Unexpected error creating employee: {e}")
+        return jsonify({"error": "Failed to create employee"}), 400
     finally:
         cur.close()
         conn.close()
@@ -91,16 +145,21 @@ def update_employee(employee_id):
         cur.execute(
             "UPDATE freshwash.employee SET employee_name = %s, role = %s, contact_number = %s "
             "WHERE employee_id = %s",
-            (data['name'], data['role'], data['contact'], employee_id)
+            (data['name'], data['role'], data['contact_number'], employee_id)
         )
         conn.commit()
         return jsonify({"message": "Employee updated"}), 200
+    except (IntegrityError, ProgrammingError, OperationalError) as e:
+        conn.rollback()
+        return jsonify({"error": handle_db_error(e, "employee update")}), 400
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": str(e)}), 400
+        print(f"Unexpected error updating employee: {e}")
+        return jsonify({"error": "Failed to update employee"}), 400
     finally:
         cur.close()
         conn.close()
+
 
 @employees_bp.route('/employees/<int:employee_id>', methods=['DELETE'])
 def delete_employee(employee_id):
@@ -114,9 +173,13 @@ def delete_employee(employee_id):
         )
         conn.commit()
         return jsonify({"message": "Employee deleted"}), 200
+    except (IntegrityError, ProgrammingError, OperationalError) as e:
+        conn.rollback()
+        return jsonify({"error": handle_db_error(e, "employee deletion")}), 400
     except Exception as e:
         conn.rollback()
-        return jsonify({"error": str(e)}), 400
+        print(f"Unexpected error deleting employee: {e}")
+        return jsonify({"error": "Failed to delete employee"}), 400
     finally:
         cur.close()
         conn.close()

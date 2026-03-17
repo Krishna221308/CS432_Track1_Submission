@@ -306,3 +306,138 @@ body.light-theme .login-btn {
   color: var(--primary);
   font-weight: 600;
 }
+
+/* Validation Error Styles */
+.input-error {
+  border-color: #ef4444 !important;
+  background: rgba(239, 68, 68, 0.02) !important;
+}
+
+.input-error:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.12) !important;
+}
+
+.field-error {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  padding: 0.75rem;
+  background: #fee2e2;
+  border-left: 3px solid #ef4444;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  color: #991b1b;
+  line-height: 1.4;
+}
+
+body.dark-theme .field-error {
+  background: rgba(239, 68, 68, 0.15);
+  border-left-color: #f87171;
+  color: #fca5a5;
+}
+
+.field-error svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+/* Password Strength Indicator */
+.password-strength {
+  margin-top: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.strength-bar {
+  flex: 1;
+  height: 6px;
+  background: #e5e7eb;
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+body.dark-theme .strength-bar {
+  background: rgba(75, 85, 99, 0.4);
+}
+
+.strength-fill {
+  height: 100%;
+  transition: width 0.3s ease, background-color 0.3s ease;
+  border-radius: 3px;
+}
+
+.strength-1 {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  width: 20%;
+}
+
+.strength-2 {
+  background: linear-gradient(90deg, #f97316, #fb923c);
+  width: 40%;
+}
+
+.strength-3 {
+  background: linear-gradient(90deg, #eab308, #facc15);
+  width: 60%;
+}
+
+.strength-4 {
+  background: linear-gradient(90deg, #84cc16, #a3e635);
+  width: 80%;
+}
+
+.strength-5 {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  width: 100%;
+}
+
+.strength-text {
+  font-size: 0.875rem;
+  font-weight: 600;
+  min-width: 80px;
+  text-align: right;
+}
+
+.strength-1.strength-text {
+  color: #ef4444;
+}
+
+.strength-2.strength-text {
+  color: #f97316;
+}
+
+.strength-3.strength-text {
+  color: #eab308;
+}
+
+.strength-4.strength-text {
+  color: #84cc16;
+}
+
+.strength-5.strength-text {
+  color: #22c55e;
+}
+
+body.dark-theme .strength-1.strength-text {
+  color: #f87171;
+}
+
+body.dark-theme .strength-2.strength-text {
+  color: #fb923c;
+}
+
+body.dark-theme .strength-3.strength-text {
+  color: #facc15;
+}
+
+body.dark-theme .strength-4.strength-text {
+  color: #a3e635;
+}
+
+body.dark-theme .strength-5.strength-text {
+  color: #86efac;
+}

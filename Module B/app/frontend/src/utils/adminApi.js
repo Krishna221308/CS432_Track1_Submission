@@ -512,3 +512,98 @@ export const getClothingTypes = async () => {
     throw error;
   }
 };
+
+// Profile Management APIs
+export const getUserProfile = async (memberId) => {
+  try {
+    const response = await fetch(`${API_URL}/user/profile/${memberId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to fetch profile');
+    return data;
+  } catch (error) {
+    console.error('Get Profile Error:', error);
+    throw error;
+  }
+};
+
+export const updateUserProfile = async (memberId, profileData) => {
+  try {
+    const response = await fetch(`${API_URL}/user/profile/${memberId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to update profile');
+    return data;
+  } catch (error) {
+    console.error('Update Profile Error:', error);
+    throw error;
+  }
+};
+
+export const changeUserPassword = async (memberId, oldPassword, newPassword) => {
+  try {
+    const response = await fetch(`${API_URL}/user/profile/${memberId}/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to change password');
+    return data;
+  } catch (error) {
+    console.error('Change Password Error:', error);
+    throw error;
+  }
+};
+
+export const getEmployeeProfile = async (employeeId) => {
+  try {
+    const response = await fetch(`${API_URL}/user/employee/${employeeId}`, {
+      method: 'GET',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to fetch profile');
+    return data;
+  } catch (error) {
+    console.error('Get Employee Profile Error:', error);
+    throw error;
+  }
+};
+
+export const updateEmployeeProfile = async (employeeId, profileData) => {
+  try {
+    const response = await fetch(`${API_URL}/user/employee/${employeeId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(profileData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to update profile');
+    return data;
+  } catch (error) {
+    console.error('Update Employee Profile Error:', error);
+    throw error;
+  }
+};
+
+export const changeEmployeePassword = async (employeeId, oldPassword, newPassword) => {
+  try {
+    const response = await fetch(`${API_URL}/user/employee/${employeeId}/change-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ old_password: oldPassword, new_password: newPassword }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to change password');
+    return data;
+  } catch (error) {
+    console.error('Change Employee Password Error:', error);
+    throw error;
+  }
+};

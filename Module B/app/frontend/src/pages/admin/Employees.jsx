@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Plus, Trash2, Edit, X } from 'lucide-react';
+import { Search, Plus, Trash2, Edit, X, AlertCircle } from 'lucide-react';
 import { getAllEmployees, createEmployee, updateEmployee, deleteEmployee } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
+import { validatePhoneNumber, validatePassword, validateUsername } from '../../utils/validation';
 import '../../styles/admin.css';
 
 const AdminEmployees = () => {
@@ -17,7 +18,12 @@ const AdminEmployees = () => {
     role: '',
     contact: '',
     joining_date: '',
+    username: '',
+    password: '',
+    confirmPassword: '',
   });
+  const [validationErrors, setValidationErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
 
   useEffect(() => {
     loadEmployees();
@@ -52,6 +58,9 @@ const AdminEmployees = () => {
         role: employee.role,
         contact: employee.contact,
         joining_date: employee.joining_date,
+        username: '',
+        password: '',
+        confirmPassword: '',
       });
     } else {
       setIsEditing(false);
@@ -61,6 +70,9 @@ const AdminEmployees = () => {
         role: '',
         contact: '',
         joining_date: new Date().toISOString().split('T')[0],
+        username: '',
+        password: '',
+        confirmPassword: '',
       });
     }
     setShowModal(true);
@@ -77,25 +89,81 @@ const AdminEmployees = () => {
       ...prev,
       [name]: value,
     }));
+
+    // Update password strength when password field changes
+    if (name === 'password' && !isEditing && value) {
+      const validation = validatePassword(value);
+      setPasswordStrength(validation.strength);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setValidationErrors({});
 
     try {
       if (isEditing) {
+        // Validate phone number for edit
+        const phoneVal = validatePhoneNumber(formData.contact);
+        if (!phoneVal.valid) {
+          setValidationErrors({ contact: phoneVal.message });
+          addToast(phoneVal.message, 'error');
+          return;
+        }
+
         await updateEmployee(formData.employee_id, {
           name: formData.name,
           role: formData.role,
-          contact: formData.contact
+          contact_number: formData.contact
         });
         addToast('Employee updated successfully', 'success');
       } else {
+        // Validate all fields for create
+        const errors = {};
+
+        const phoneVal = validatePhoneNumber(formData.contact);
+        if (!phoneVal.valid) errors.contact = phoneVal.message;
+
+        if (formData.username || formData.password || formData.confirmPassword) {
+          const usernameVal = validateUsername(formData.username);
+          if (!usernameVal.valid) errors.username = usernameVal.message;
+
+          if (formData.password !== formData.confirmPassword) {
+            errors.password = 'Passwords do not match';
+          }
+
+          if (!formData.password) {
+            errors.password = 'Password is required';
+          } else {
+            const passwordVal = validatePassword(formData.password);
+            if (!passwordVal.valid) {
+              errors.password = passwordVal.message;
+            }
+          }
+
+          if (!formData.username) {
+            errors.username = 'Username is required';
+          }
+        }
+
+        if (Object.keys(errors).length > 0) {
+          setValidationErrors(errors);
+          addToast('Please fix validation errors', 'error');
+          return;
+        }
+
+        if (!formData.username || !formData.password) {
+          addToast('Username and password are required', 'error');
+          return;
+        }
+
         await createEmployee({
           name: formData.name,
           role: formData.role,
-          contact: formData.contact,
-          joining_date: formData.joining_date
+          contact_number: formData.contact,
+          joining_date: formData.joining_date,
+          username: formData.username,
+          password: formData.password
         });
         addToast('Employee added successfully', 'success');
       }
@@ -256,8 +324,16 @@ const AdminEmployees = () => {
                     value={formData.contact}
                     onChange={handleInputChange}
                     required
-                    placeholder="555-0000"
+                    placeholder="10-digit phone number"
+                    maxLength="10"
+                    className={validationErrors.contact ? 'input-error' : ''}
                   />
+                  {validationErrors.contact && (
+                    <p className="field-error">
+                      <AlertCircle size={16} />
+                      {validationErrors.contact}
+                    </p>
+                  )}
                 </div>
 
                 <div className="form-group">
@@ -270,6 +346,80 @@ const AdminEmployees = () => {
                     required
                   />
                 </div>
+
+                {!isEditing && (
+                  <>
+                    <div className="form-group">
+                      <label>Username *</label>
+                      <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleInputChange}
+                        required={!isEditing}
+                        placeholder="3-20 characters (letters, numbers, underscore)"
+                        className={validationErrors.username ? 'input-error' : ''}
+                      />
+                      {validationErrors.username && (
+                        <p className="field-error">
+                          <AlertCircle size={16} />
+                          {validationErrors.username}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="form-group">
+                      <label>Password *</label>
+                      <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleInputChange}
+                        required={!isEditing}
+                        placeholder="••••••••"
+                        className={validationErrors.password ? 'input-error' : ''}
+                      />
+                      {formData.password && (
+                        <div className="password-strength">
+                          <div className="strength-bar">
+                            <div
+                              className={`strength-fill strength-${passwordStrength}`}
+                              style={{
+                                width: `${(passwordStrength / 5) * 100}%`,
+                              }}
+                            ></div>
+                          </div>
+                          <span className={`strength-text strength-${passwordStrength}`}>
+                            {passwordStrength === 0 && 'Weak'}
+                            {passwordStrength === 1 && 'Very Weak'}
+                            {passwordStrength === 2 && 'Fair'}
+                            {passwordStrength === 3 && 'Good'}
+                            {passwordStrength === 4 && 'Strong'}
+                            {passwordStrength === 5 && 'Very Strong'}
+                          </span>
+                        </div>
+                      )}
+                      {validationErrors.password && (
+                        <p className="field-error">
+                          <AlertCircle size={16} />
+                          {validationErrors.password}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="form-group">
+                      <label>Confirm Password *</label>
+                      <input
+                        type="password"
+                        name="confirmPassword"
+                        value={formData.confirmPassword}
+                        onChange={handleInputChange}
+                        required={!isEditing}
+                        placeholder="••••••••"
+                      />
+                    </div>
+                  </>
+                )}
               </div>
 
               <div className="modal-footer">

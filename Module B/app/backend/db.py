@@ -3,7 +3,7 @@ import psycopg2
 def get_connection():
     conn = psycopg2.connect(
         host="localhost",
-        database="freshwash_db",
+        database="freshwashdb",
         user="postgres",
         password="mypassword"
     )

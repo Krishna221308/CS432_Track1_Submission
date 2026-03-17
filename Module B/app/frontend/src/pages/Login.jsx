@@ -1,8 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, UserPlus, Lock, User, Eye, EyeOff } from 'lucide-react';
+import { LogIn, UserPlus, Lock, User, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { login, signup } from '../utils/auth';
 import { useToast } from '../components/Toast';
+import {
+  validateEmail,
+  validatePhoneNumber,
+  validateAge,
+  validatePassword,
+  validateUsername,
+  validateFullName,
+  validateSignupForm,
+} from '../utils/validation';
 import '../styles/login.css';
 
 const Login = () => {
@@ -18,21 +27,35 @@ const Login = () => {
 
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [validationErrors, setValidationErrors] = useState({});
+  const [passwordStrength, setPasswordStrength] = useState(0);
   const navigate = useNavigate();
   const addToast = useToast();
+
+  // Real-time password strength check
+  useMemo(() => {
+    if (!isLogin && password) {
+      const validation = validatePassword(password);
+      setPasswordStrength(validation.strength);
+    } else {
+      setPasswordStrength(0);
+    }
+  }, [password, isLogin]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setValidationErrors({});
 
     if (isLogin) {
-      if (!username || !password) {
+      if (!username || !password || !role) {
         addToast('Please fill in all info', 'error');
         return;
       }
 
       try {
-        const authenticatedRole = await login(username, password);
+        // Pass the selected role for role-based login validation
+        const authenticatedRole = await login(username, password, role);
         addToast('Login successful!', 'success');
         redirectUser(authenticatedRole);
       } catch (err) {
@@ -40,8 +63,26 @@ const Login = () => {
         addToast(err.message, 'error');
       }
     } else {
-      if (!username || !password || !name || !contact) {
-        addToast('Required fields missing', 'error');
+      // Validation for signup
+      if (!username || !password || !name || !contact || !age || !email) {
+        addToast('All fields are required', 'error');
+        return;
+      }
+
+      // Validate form
+      const validation = validateSignupForm({
+        username,
+        password,
+        name,
+        contact,
+        age,
+        email,
+      });
+
+      if (!validation.isValid) {
+        setValidationErrors(validation.errors);
+        const errorList = Object.values(validation.errors).join('\n');
+        addToast('Please fix validation errors', 'error');
         return;
       }
 
@@ -97,6 +138,7 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                className={validationErrors.password ? 'input-error' : ''}
                 required
               />
               <button
@@ -108,10 +150,56 @@ const Login = () => {
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
+            {!isLogin && password && (
+              <div className="password-strength">
+                <div className="strength-bar">
+                  <div
+                    className={`strength-fill strength-${passwordStrength}`}
+                    style={{
+                      width: `${(passwordStrength / 5) * 100}%`,
+                    }}
+                  ></div>
+                </div>
+                <span className={`strength-text strength-${passwordStrength}`}>
+                  {passwordStrength === 0 && 'Weak'}
+                  {passwordStrength === 1 && 'Very Weak'}
+                  {passwordStrength === 2 && 'Fair'}
+                  {passwordStrength === 3 && 'Good'}
+                  {passwordStrength === 4 && 'Strong'}
+                  {passwordStrength === 5 && 'Very Strong'}
+                </span>
+              </div>
+            )}
+            {validationErrors.password && (
+              <p className="field-error">
+                <AlertCircle size={16} />
+                {validationErrors.password}
+              </p>
+            )}
           </div>
 
           {!isLogin && (
             <>
+              <div className="form-group">
+                <label>Username</label>
+                <div className="input-affix">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="3-20 characters (letters, numbers, underscore)"
+                    className={validationErrors.username ? 'input-error' : ''}
+                    required
+                  />
+                </div>
+                {validationErrors.username && (
+                  <p className="field-error">
+                    <AlertCircle size={16} />
+                    {validationErrors.username}
+                  </p>
+                )}
+              </div>
+
               <div className="form-group">
                 <label>Full Name</label>
                 <div className="input-affix">
@@ -120,9 +208,16 @@ const Login = () => {
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     placeholder="Enter full name"
+                    className={validationErrors.name ? 'input-error' : ''}
                     required
                   />
                 </div>
+                {validationErrors.name && (
+                  <p className="field-error">
+                    <AlertCircle size={16} />
+                    {validationErrors.name}
+                  </p>
+                )}
               </div>
 
               <div className="form-group">
@@ -131,11 +226,19 @@ const Login = () => {
                   <input
                     type="tel"
                     value={contact}
-                    onChange={(e) => setContact(e.target.value)}
-                    placeholder="Enter phone number"
+                    onChange={(e) => setContact(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="10-digit phone number"
+                    className={validationErrors.contact ? 'input-error' : ''}
+                    maxLength="10"
                     required
                   />
                 </div>
+                {validationErrors.contact && (
+                  <p className="field-error">
+                    <AlertCircle size={16} />
+                    {validationErrors.contact}
+                  </p>
+                )}
               </div>
 
               <div className="form-group-row">
@@ -145,8 +248,17 @@ const Login = () => {
                     type="number"
                     value={age}
                     onChange={(e) => setAge(e.target.value)}
-                    placeholder="Age"
+                    placeholder="10-100"
+                    className={validationErrors.age ? 'input-error' : ''}
+                    min="10"
+                    max="100"
                   />
+                  {validationErrors.age && (
+                    <p className="field-error">
+                      <AlertCircle size={16} />
+                      {validationErrors.age}
+                    </p>
+                  )}
                 </div>
                 <div className="form-group">
                   <label>Email</label>
@@ -155,7 +267,14 @@ const Login = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email address"
+                    className={validationErrors.email ? 'input-error' : ''}
                   />
+                  {validationErrors.email && (
+                    <p className="field-error">
+                      <AlertCircle size={16} />
+                      {validationErrors.email}
+                    </p>
+                  )}
                 </div>
               </div>
             </>

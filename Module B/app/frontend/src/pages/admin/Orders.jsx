@@ -12,6 +12,8 @@ const AdminOrders = () => {
   const [editingOrder, setEditingOrder] = useState(null);
   const [newStatus, setNewStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [orderToDelete, setOrderToDelete] = useState(null);
   const addToast = useToast();
 
   const loadData = async () => {
@@ -58,6 +60,24 @@ const AdminOrders = () => {
         loadData();
       } catch (error) {
         addToast('Failed to update order: ' + error.message, 'error');
+      }
+    }
+  };
+
+  const handleDeleteClick = (order) => {
+    setOrderToDelete(order);
+    setShowDeleteConfirm(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (orderToDelete) {
+      try {
+        // TODO: Implement delete API endpoint
+        addToast('Delete functionality coming soon', 'info');
+        setShowDeleteConfirm(false);
+        setOrderToDelete(null);
+      } catch (error) {
+        addToast('Failed to delete order: ' + error.message, 'error');
       }
     }
   };
@@ -149,6 +169,13 @@ const AdminOrders = () => {
                             title="Manage Order"
                           >
                             <Edit2 size={16} />
+                          </button>
+                          <button
+                            className="action-btn delete-btn icon-only"
+                            onClick={() => handleDeleteClick(order)}
+                            title="Delete Order"
+                          >
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
