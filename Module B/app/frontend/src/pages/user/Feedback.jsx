@@ -63,10 +63,10 @@ const UserFeedback = () => {
       if (!response.ok) throw new Error('Failed to submit feedback');
 
       addToast('Thank you for your feedback!', 'success');
-      
+
       // Refresh local state (simplified)
       setFeedbacks([...feedbacks, { order_id: selectedOrder, rating, comments, feedback_date: 'Just now' }]);
-      
+
       setSelectedOrder('');
       setRating(5);
       setComments('');

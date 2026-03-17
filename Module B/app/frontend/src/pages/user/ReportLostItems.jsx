@@ -50,16 +50,16 @@ const UserReportLostItems = () => {
       if (!response.ok) throw new Error('Failed to report lost item');
 
       addToast('Lost item reported successfully!', 'success');
-      
+
       // Refresh local state (simplified)
-      setLostItems([...lostItems, { 
-        lost_id: 'NEW', 
-        order_id: selectedOrder, 
-        item_description: itemDescription, 
+      setLostItems([...lostItems, {
+        lost_id: 'NEW',
+        order_id: selectedOrder,
+        item_description: itemDescription,
         reported_date: 'Just now',
-        compensation_amount: 0 
+        compensation_amount: 0
       }]);
-      
+
       setSelectedOrder('');
       setItemDescription('');
       setShowReportForm(false);

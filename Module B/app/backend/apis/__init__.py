@@ -6,6 +6,7 @@ from .user.payments.routes import payments_bp
 from .user.interactions.routes import interactions_bp
 from .user.profile.routes import profile_bp
 from .admin import register_admin_apis
+from .employee import register_employee_apis
 
 def init_apis(app):
     api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -24,5 +25,10 @@ def init_apis(app):
     admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
     register_admin_apis(admin_bp)
     api_bp.register_blueprint(admin_bp)
+
+    # Employee APIs
+    employee_bp = Blueprint('employee', __name__, url_prefix='/employee')
+    register_employee_apis(employee_bp)
+    api_bp.register_blueprint(employee_bp)
     
     app.register_blueprint(api_bp)
