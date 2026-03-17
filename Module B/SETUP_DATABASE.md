@@ -79,6 +79,34 @@ echo "✓ Database initialized successfully!"
 
 ## Troubleshooting
 
+### Members/employee assignment column missing (after pulling new code)
+If you created the DB earlier, your database may not include the newer `assigned_employee_id` column yet.
+Run:
+
+```sql
+ALTER TABLE freshwash.member
+  ADD COLUMN IF NOT EXISTS assigned_employee_id INT;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_schema='freshwash'
+      AND table_name='member'
+      AND constraint_name='fk_member_assigned_employee'
+  ) THEN
+    ALTER TABLE freshwash.member
+      ADD CONSTRAINT fk_member_assigned_employee
+      FOREIGN KEY (assigned_employee_id)
+      REFERENCES freshwash.employee(employee_id)
+      ON DELETE SET NULL;
+  END IF;
+END $$;
+
+CREATE INDEX IF NOT EXISTS idx_member_assigned_employee_id
+  ON freshwash.member (assigned_employee_id);
+```
+
 ### "connection to server on socket failed"
 PostgreSQL service is not running. Start it using the commands above.
 

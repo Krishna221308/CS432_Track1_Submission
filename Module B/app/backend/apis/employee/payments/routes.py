@@ -17,10 +17,10 @@ def get_assigned_payments(employee_id):
                 p.payment_id, p.order_id, p.payment_amount,
                 p.payment_mode, p.payment_date, ps.status_name AS payment_status
             FROM freshwash.payment p
-            JOIN freshwash.laundry_order    lo ON lo.order_id   = p.order_id
-            JOIN freshwash.order_assignment oa ON oa.order_id   = lo.order_id
+            JOIN freshwash.laundry_order lo ON lo.order_id = p.order_id
+            JOIN freshwash.member m ON m.member_id = lo.member_id
             LEFT JOIN freshwash.payment_status ps ON ps.payment_id = p.payment_id
-            WHERE oa.employee_id = %s
+            WHERE m.assigned_employee_id = %s
             ORDER BY p.payment_date DESC
             """,
             (employee_id,)

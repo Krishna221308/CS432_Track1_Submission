@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { Search, UserPlus, Edit2, Trash2 } from 'lucide-react';
-import { getAllMembers, updateMember, deleteMember } from '../../utils/adminApi';
+import { getAllMembers, updateMember, deleteMember, getAllEmployees } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
@@ -12,11 +12,13 @@ const AdminMembers = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [members, setMembers] = useState([]);
-  const [formData, setFormData] = useState({ name: '', age: '', email: '', contact: '', address: '' });
+  const [employees, setEmployees] = useState([]);
+  const [formData, setFormData] = useState({ name: '', age: '', email: '', contact: '', address: '', assigned_employee_id: '' });
   const addToast = useToast();
 
   useEffect(() => {
     loadMembers();
+    loadEmployees();
   }, []);
 
   const loadMembers = async () => {
@@ -28,6 +30,15 @@ const AdminMembers = () => {
       addToast('Failed to load members: ' + error.message, 'error');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const loadEmployees = async () => {
+    try {
+      const data = await getAllEmployees();
+      setEmployees(data);
+    } catch (error) {
+      addToast('Failed to load employees: ' + error.message, 'error');
     }
   };
 
@@ -48,7 +59,8 @@ const AdminMembers = () => {
       age: member.age,
       email: member.email,
       contact: member.contact,
-      address: member.address
+      address: member.address,
+      assigned_employee_id: member.assigned_employee_id || ''
     });
     setShowEditModal(true);
   };
@@ -127,6 +139,7 @@ const AdminMembers = () => {
                   <th>Contact</th>
                   <th>Age</th>
                   <th>Address</th>
+                  <th>Assigned Employee</th>
                   <th>Action</th>
                 </tr>
               </thead>
@@ -140,6 +153,13 @@ const AdminMembers = () => {
                       <td>{member.contact}</td>
                       <td>{member.age}</td>
                       <td>{member.address}</td>
+                      <td>
+                        {member.assigned_employee_name ? (
+                          <span className="assignment-badge">{member.assigned_employee_name}</span>
+                        ) : (
+                          <span className="unassigned-badge">Unassigned</span>
+                        )}
+                      </td>
                       <td>
                       <div className="action-buttons">
                         <button
@@ -239,6 +259,22 @@ const AdminMembers = () => {
                     onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                   />
                 </div>
+                <div className="detail-item full-width">
+                  <label htmlFor="assigned_employee_id">Assign Employee</label>
+                  <select
+                    id="assigned_employee_id"
+                    className="form-select"
+                    value={formData.assigned_employee_id}
+                    onChange={(e) => setFormData({ ...formData, assigned_employee_id: e.target.value })}
+                  >
+                    <option value="">-- Unassigned --</option>
+                    {employees.map((emp) => (
+                      <option key={emp.employee_id} value={emp.employee_id}>
+                        {emp.name} ({emp.role})
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <div className="modal-footer">
@@ -302,6 +338,16 @@ const AdminMembers = () => {
           padding: 4px 12px;
           background: #e0e7ff;
           color: #3730a3;
+          border-radius: 12px;
+          font-size: 0.85rem;
+          font-weight: 500;
+        }
+
+        .unassigned-badge {
+          display: inline-block;
+          padding: 4px 12px;
+          background: #f3f4f6;
+          color: #6b7280;
           border-radius: 12px;
           font-size: 0.85rem;
           font-weight: 500;

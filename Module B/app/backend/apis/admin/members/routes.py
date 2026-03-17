@@ -10,9 +10,13 @@ def get_all_members():
     cur = conn.cursor()
     try:
         cur.execute(
-            "SELECT member_id, name, age, email, contact_number, address, created_at "
-            "FROM freshwash.member "
-            "ORDER BY member_id ASC"
+            """
+            SELECT m.member_id, m.name, m.age, m.email, m.contact_number, m.address, m.created_at, 
+                   m.assigned_employee_id, e.employee_name
+            FROM freshwash.member m
+            LEFT JOIN freshwash.employee e ON m.assigned_employee_id = e.employee_id
+            ORDER BY m.member_id ASC
+            """
         )
         rows = cur.fetchall()
         members = []
@@ -24,7 +28,9 @@ def get_all_members():
                 "email": r[3],
                 "contact": r[4],
                 "address": r[5],
-                "created_at": r[6].isoformat() if r[6] else None
+                "created_at": r[6].isoformat() if r[6] else None,
+                "assigned_employee_id": r[7],
+                "assigned_employee_name": r[8]
             })
         return jsonify(members), 200
     except Exception as e:
@@ -40,9 +46,13 @@ def get_member_details(member_id):
     cur = conn.cursor()
     try:
         cur.execute(
-            "SELECT member_id, name, age, email, contact_number, address, created_at "
-            "FROM freshwash.member "
-            "WHERE member_id = %s",
+            """
+            SELECT m.member_id, m.name, m.age, m.email, m.contact_number, m.address, m.created_at,
+                   m.assigned_employee_id, e.employee_name
+            FROM freshwash.member m
+            LEFT JOIN freshwash.employee e ON m.assigned_employee_id = e.employee_id
+            WHERE m.member_id = %s
+            """,
             (member_id,)
         )
         row = cur.fetchone()
@@ -54,7 +64,9 @@ def get_member_details(member_id):
                 "email": row[3],
                 "contact": row[4],
                 "address": row[5],
-                "created_at": row[6].isoformat() if row[6] else None
+                "created_at": row[6].isoformat() if row[6] else None,
+                "assigned_employee_id": row[7],
+                "assigned_employee_name": row[8]
             }), 200
         return jsonify({"error": "Member not found"}), 404
     except Exception as e:
@@ -70,10 +82,24 @@ def update_member(member_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
+        assigned_employee_id = data.get('assigned_employee_id')
+        if assigned_employee_id == '':
+            assigned_employee_id = None
+
+        if assigned_employee_id is not None:
+            try:
+                assigned_employee_id = int(assigned_employee_id)
+            except Exception:
+                return jsonify({"error": "assigned_employee_id must be an integer or empty"}), 400
+
+            cur.execute("SELECT employee_id FROM freshwash.employee WHERE employee_id = %s", (assigned_employee_id,))
+            if not cur.fetchone():
+                return jsonify({"error": "Assigned employee not found"}), 404
+            
         cur.execute(
-            "UPDATE freshwash.member SET name = %s, age = %s, email = %s, contact_number = %s, address = %s "
+            "UPDATE freshwash.member SET name = %s, age = %s, email = %s, contact_number = %s, address = %s, assigned_employee_id = %s "
             "WHERE member_id = %s",
-            (data['name'], data['age'], data['email'], data['contact'], data['address'], member_id)
+            (data['name'], data['age'], data['email'], data['contact'], data['address'], assigned_employee_id, member_id)
         )
         conn.commit()
         return jsonify({"message": "Member updated"}), 200

@@ -6,17 +6,15 @@ emp_members_bp = Blueprint('emp_members', __name__)
 
 @emp_members_bp.route('/<int:employee_id>', methods=['GET'])
 def get_assigned_members(employee_id):
-    """Return distinct members linked to this employee's assigned orders."""
+    """Return members directly assigned to this employee (account handler)."""
     conn = get_connection()
     cur  = conn.cursor()
     try:
         cur.execute(
             """
-            SELECT DISTINCT m.member_id, m.name AS member_name
+            SELECT m.member_id, m.name AS member_name
             FROM freshwash.member m
-            JOIN freshwash.laundry_order    lo ON lo.member_id  = m.member_id
-            JOIN freshwash.order_assignment oa ON oa.order_id   = lo.order_id
-            WHERE oa.employee_id = %s
+            WHERE m.assigned_employee_id = %s
             ORDER BY m.name
             """,
             (employee_id,)

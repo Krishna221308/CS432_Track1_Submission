@@ -138,9 +138,15 @@ CREATE TABLE freshwash.member (
     email           VARCHAR(100)    NOT NULL UNIQUE,
     contact_number  VARCHAR(15)     NOT NULL UNIQUE,
     address         VARCHAR(255)    NOT NULL,
+    -- Admin-assigned "account handler" employee for this member.
+    -- Employees should only manage orders/payments/feedback for their assigned members.
+    assigned_employee_id INT,
     created_at      TIMESTAMPTZ     NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT chk_member_age CHECK (age >= 18)
+    CONSTRAINT chk_member_age CHECK (age >= 18),
+    CONSTRAINT fk_member_assigned_employee
+        FOREIGN KEY (assigned_employee_id) REFERENCES freshwash.employee (employee_id)
+        ON DELETE SET NULL
 );
 
 COMMENT ON TABLE freshwash.member IS 'Registered customer accounts. Must be 18+ years old.';
@@ -148,6 +154,7 @@ COMMENT ON TABLE freshwash.member IS 'Registered customer accounts. Must be 18+ 
 -- Indexes: email and contact_number are common lookup / search fields
 CREATE INDEX idx_member_email   ON freshwash.member (email);
 CREATE INDEX idx_member_contact ON freshwash.member (contact_number);
+CREATE INDEX idx_member_assigned_employee_id ON freshwash.member (assigned_employee_id);
 
 INSERT INTO freshwash.member (member_id, name, age, email, contact_number, address, created_at) VALUES
     (1,  'Aarav Patel',    25, 'aarav.p@example.com',    '9876543210', '123 MG Road, Gandhinagar',        '2026-02-14 21:37:05+00'),

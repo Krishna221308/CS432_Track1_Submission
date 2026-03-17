@@ -16,8 +16,8 @@ def get_assigned_feedbacks(employee_id):
             SELECT DISTINCT
                 f.feedback_id, f.member_id, f.order_id, f.rating, f.comments, f.feedback_date
             FROM freshwash.feedback f
-            JOIN freshwash.order_assignment oa ON oa.order_id = f.order_id
-            WHERE oa.employee_id = %s
+            JOIN freshwash.member m ON m.member_id = f.member_id
+            WHERE m.assigned_employee_id = %s
             ORDER BY f.feedback_date DESC
             """,
             (employee_id,)

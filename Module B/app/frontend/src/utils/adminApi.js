@@ -32,6 +32,22 @@ export const getAllOrders = async () => {
   }
 };
 
+export const createOrder = async (orderData) => {
+  try {
+    const response = await fetch(`${API_URL}/admin/orders`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(orderData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to create order');
+    return data;
+  } catch (error) {
+    console.error('Create Order Error:', error);
+    throw error;
+  }
+};
+
 export const getOrderDetails = async (orderId) => {
   try {
     const response = await fetch(`${API_URL}/admin/orders/${orderId}`, {
@@ -59,6 +75,21 @@ export const updateOrderStatus = async (orderId, status) => {
     return data;
   } catch (error) {
     console.error('Update Order Error:', error);
+    throw error;
+  }
+};
+
+export const deleteOrder = async (orderId) => {
+  try {
+    const response = await fetch(`${API_URL}/admin/orders/${orderId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'Failed to delete order');
+    return data;
+  } catch (error) {
+    console.error('Delete Order Error:', error);
     throw error;
   }
 };

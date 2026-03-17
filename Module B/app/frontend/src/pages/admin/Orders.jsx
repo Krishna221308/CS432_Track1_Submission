@@ -1,11 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Plus, Edit2, Trash2 } from 'lucide-react';
-import { getAllOrders, updateOrderStatus } from '../../utils/adminApi';
+import { getAllOrders, updateOrderStatus, deleteOrder, createOrder, getAllMembers } from '../../utils/adminApi';
 import { useToast } from '../../components/Toast';
 import '../../styles/admin.css';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
+  const [members, setMembers] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState('all');
   const [showEditModal, setShowEditModal] = useState(false);
@@ -14,13 +15,26 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [orderToDelete, setOrderToDelete] = useState(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [adding, setAdding] = useState(false);
+  const [newOrder, setNewOrder] = useState({
+    member_id: '',
+    pickup_time: '',
+    expected_delivery_time: '',
+    total_amount: '',
+    current_status: 'Pending',
+  });
   const addToast = useToast();
 
   const loadData = async () => {
     setLoading(true);
     try {
-      const data = await getAllOrders();
-      setOrders(data);
+      const [ordersData, membersData] = await Promise.all([
+        getAllOrders(),
+        getAllMembers(),
+      ]);
+      setOrders(ordersData);
+      setMembers(membersData);
     } catch (error) {
       addToast('Failed to load orders: ' + error.message, 'error');
     } finally {
@@ -72,13 +86,50 @@ const AdminOrders = () => {
   const handleConfirmDelete = async () => {
     if (orderToDelete) {
       try {
-        // TODO: Implement delete API endpoint
-        addToast('Delete functionality coming soon', 'info');
+        await deleteOrder(orderToDelete.order_id);
+        addToast('Order deleted successfully', 'success');
         setShowDeleteConfirm(false);
         setOrderToDelete(null);
+        loadData();
       } catch (error) {
         addToast('Failed to delete order: ' + error.message, 'error');
       }
+    }
+  };
+
+  const handleCreateOrder = async () => {
+    const { member_id, pickup_time, expected_delivery_time, total_amount, current_status } = newOrder;
+    if (!member_id || !pickup_time || !expected_delivery_time || !total_amount) {
+      addToast('Please fill all required fields', 'error');
+      return;
+    }
+    if (new Date(expected_delivery_time) <= new Date(pickup_time)) {
+      addToast('Expected delivery time must be after pickup time', 'error');
+      return;
+    }
+    setAdding(true);
+    try {
+      await createOrder({
+        member_id: parseInt(member_id),
+        pickup_time,
+        expected_delivery_time,
+        total_amount: parseFloat(total_amount),
+        current_status,
+      });
+      addToast('Order created successfully', 'success');
+      setShowAddModal(false);
+      setNewOrder({
+        member_id: '',
+        pickup_time: '',
+        expected_delivery_time: '',
+        total_amount: '',
+        current_status: 'Pending',
+      });
+      loadData();
+    } catch (error) {
+      addToast('Failed to create order: ' + error.message, 'error');
+    } finally {
+      setAdding(false);
     }
   };
 
@@ -89,6 +140,9 @@ const AdminOrders = () => {
           <h1>Orders Management</h1>
           <p>Track and manage all customer laundry orders</p>
         </div>
+        <button className="btn-add-order" onClick={() => setShowAddModal(true)}>
+          <Plus size={18} /> Add Order
+        </button>
       </header>
 
       <div className="filters-section">
@@ -274,7 +328,121 @@ const AdminOrders = () => {
         </div>
       )}
 
+      {/* Add Order Modal */}
+      {showAddModal && (
+        <div className="modal-overlay" onClick={() => setShowAddModal(false)}>
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h2>Add Order</h2>
+              <button className="close-modal" onClick={() => setShowAddModal(false)}>×</button>
+            </div>
+            <div className="modal-body">
+              <div className="detail-grid">
+                <div className="detail-item full-width">
+                  <label htmlFor="member-select">Member *</label>
+                  <select
+                    id="member-select"
+                    className="form-select"
+                    value={newOrder.member_id}
+                    onChange={(e) => setNewOrder({ ...newOrder, member_id: e.target.value })}
+                  >
+                    <option value="">— Select Member —</option>
+                    {members.map((m) => (
+                      <option key={m.member_id} value={m.member_id}>
+                        {m.name} (ID: {m.member_id})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="pickup-time">Pickup Time *</label>
+                  <input
+                    id="pickup-time"
+                    type="datetime-local"
+                    className="form-select"
+                    value={newOrder.pickup_time}
+                    onChange={(e) => setNewOrder({ ...newOrder, pickup_time: e.target.value })}
+                  />
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="delivery-time">Expected Delivery *</label>
+                  <input
+                    id="delivery-time"
+                    type="datetime-local"
+                    className="form-select"
+                    value={newOrder.expected_delivery_time}
+                    onChange={(e) => setNewOrder({ ...newOrder, expected_delivery_time: e.target.value })}
+                  />
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="total-amount">Total Amount (₹) *</label>
+                  <input
+                    id="total-amount"
+                    type="number"
+                    className="form-select"
+                    placeholder="e.g. 500.00"
+                    value={newOrder.total_amount}
+                    onChange={(e) => setNewOrder({ ...newOrder, total_amount: e.target.value })}
+                    step="0.01"
+                    min="0.01"
+                  />
+                </div>
+
+                <div className="detail-item">
+                  <label htmlFor="status">Initial Status</label>
+                  <select
+                    id="status"
+                    className="form-select"
+                    value={newOrder.current_status}
+                    onChange={(e) => setNewOrder({ ...newOrder, current_status: e.target.value })}
+                  >
+                    <option value="Pending">Pending</option>
+                    <option value="Picked Up">Picked Up</option>
+                    <option value="Washing">Washing</option>
+                    <option value="Processing">Processing</option>
+                    <option value="Ironing">Ironing</option>
+                    <option value="Ready for Delivery">Ready for Delivery</option>
+                    <option value="Delivered">Delivered</option>
+                    <option value="Cancelled">Cancelled</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="modal-footer">
+                <button className="btn btn-secondary" onClick={() => setShowAddModal(false)}>Cancel</button>
+                <button className="btn btn-primary" onClick={handleCreateOrder} disabled={adding}>
+                  {adding ? 'Creating…' : 'Create Order'}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <style>{`
+        .btn-add-order {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
+          padding: 0.75rem 1.5rem;
+          background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+          color: white;
+          border: none;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          transition: all 0.2s;
+          box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-add-order:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 8px 16px rgba(59, 130, 246, 0.4);
+        }
+
         .employee-badge {
           display: inline-block;
           padding: 4px 12px;

@@ -37,7 +37,10 @@ export const createOrder = (orderData) =>
 export const updateOrderStatus = (orderId, orderStatus) =>
   apiFetch(`/orders/${orderId}/status`, {
     method: 'PUT',
-    body: JSON.stringify({ order_status: orderStatus }),
+    body: JSON.stringify({
+      order_status: orderStatus,
+      employee_id: JSON.parse(localStorage.getItem('user') || '{}').employeeId,
+    }),
   });
 
 // ── Payments ───────────────────────────────────────────────────────────────
