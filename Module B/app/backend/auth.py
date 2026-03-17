@@ -24,8 +24,10 @@ def handle_db_error(error, context="operation"):
             return 'Username already exists'
         elif 'email' in error_str:
             return 'Email already registered'
+        elif 'contact' in error_str or 'phone' in error_str:
+            return 'Phone number already registered'
         elif 'unique' in error_str:
-            return 'This record already exists'
+            return 'This data is already in use'
         else:
             return 'This data conflicts with existing records'
     
@@ -77,11 +79,11 @@ def validate_password(password):
     return errors
 
 def validate_age(age):
-    """Validate age (between 10 and 100)"""
+    """Validate age (between 18 and 100)"""
     try:
         age_int = int(age)
-        if age_int < 10:
-            return 'Age must be at least 10 years old'
+        if age_int < 18:
+            return 'Age must be at least 18 years old'
         if age_int > 100:
             return 'Age must be 100 or less'
         return None

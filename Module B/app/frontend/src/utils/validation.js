@@ -20,12 +20,12 @@ export const validatePhoneNumber = (phone) => {
   return { valid: true, message: '' };
 };
 
-// Age validation (between 10 and 100)
+// Age validation (between 18 and 100)
 export const validateAge = (age) => {
   const ageNum = parseInt(age);
   if (!age) return { valid: false, message: 'Age is required' };
   if (isNaN(ageNum)) return { valid: false, message: 'Age must be a number' };
-  if (ageNum < 10) return { valid: false, message: 'Age must be at least 10 years old' };
+  if (ageNum < 18) return { valid: false, message: 'Age must be at least 18 years old' };
   if (ageNum > 100) return { valid: false, message: 'Age must be 100 or less' };
   return { valid: true, message: '' };
 };
