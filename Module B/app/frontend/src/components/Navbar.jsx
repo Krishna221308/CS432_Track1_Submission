@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Menu, Bell, LogOut, User as UserIcon } from 'lucide-react';
+import { Menu, LogOut, User as UserIcon } from 'lucide-react';
 import { getUser, getRole, logout } from '../utils/auth';
 import { useToast } from './Toast';
 import ThemeToggle from './ThemeToggle';
@@ -31,10 +31,6 @@ const Navbar = ({ toggleSidebar }) => {
       
       <div className="navbar-right">
         <ThemeToggle />
-        <div className="navbar-icon">
-          <Bell size={20} />
-          <span className="notification-dot"></span>
-        </div>
         <div className="user-profile">
           <div className="user-info" onClick={handleProfileClick} style={{ cursor: 'pointer' }} title="View Profile">
             <div className="user-avatar-sm">

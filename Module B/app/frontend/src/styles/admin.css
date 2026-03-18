@@ -306,6 +306,11 @@
   color: var(--text-muted);
 }
 
+body.dark-theme .action-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: #94a3b8;
+}
+
 .action-btn:hover {
   transform: translateY(-2px);
 }
@@ -313,6 +318,11 @@
 .action-btn.view-btn:hover {
   background: #dbeafe;
   color: var(--primary);
+}
+
+body.dark-theme .action-btn.view-btn:hover {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
 }
 
 .action-btn.edit-btn:hover {
@@ -485,6 +495,7 @@
     transform: translateY(-30px);
     opacity: 0;
   }
+
   to {
     transform: translateY(0);
     opacity: 1;

@@ -3,7 +3,7 @@ from db import get_connection
 
 payments_bp = Blueprint('user_payments', __name__)
 
-@payments_bp.route('/payments/<int:member_id>', methods=['GET'])
+@payments_bp.route('/<int:member_id>', methods=['GET'])
 def get_user_payments(member_id):
     conn = get_connection()
     cur = conn.cursor()

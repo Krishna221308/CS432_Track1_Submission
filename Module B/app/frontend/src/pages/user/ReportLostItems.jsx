@@ -195,6 +195,11 @@ const UserReportLostItems = () => {
           overflow: hidden;
         }
 
+        body.dark-theme .form-card {
+          background: var(--bg-card);
+          border: 1px solid var(--glass-border);
+        }
+
         .card-header {
           display: flex;
           justify-content: space-between;
@@ -204,11 +209,20 @@ const UserReportLostItems = () => {
           background: #f9fafb;
         }
 
+        body.dark-theme .card-header {
+          background: rgba(255, 255, 255, 0.05);
+          border-bottom-color: var(--glass-border);
+        }
+
         .card-header h2 {
           margin: 0;
           font-size: 1.1rem;
           color: #1f2937;
           font-weight: 600;
+        }
+
+        body.dark-theme .card-header h2 {
+          color: #f3f4f6;
         }
 
         .form-body {
@@ -227,6 +241,10 @@ const UserReportLostItems = () => {
           color: #374151;
         }
 
+        body.dark-theme .form-group label {
+          color: #d1d5db;
+        }
+
         .form-select,
         .form-textarea {
           width: 100%;
@@ -237,6 +255,13 @@ const UserReportLostItems = () => {
           background-color: #fff;
           transition: border-color 0.2s;
           font-family: inherit;
+        }
+
+        body.dark-theme .form-select,
+        body.dark-theme .form-textarea {
+          background-color: rgba(30, 41, 59, 0.5);
+          border-color: var(--glass-border);
+          color: #f8fafc;
         }
 
         .form-select:hover,
@@ -260,6 +285,10 @@ const UserReportLostItems = () => {
           gap: 12px;
           padding-top: 16px;
           border-top: 1px solid #e5e7eb;
+        }
+
+        body.dark-theme .form-actions {
+          border-top-color: var(--glass-border);
         }
 
         .btn {

@@ -82,22 +82,30 @@ def update_payment_status(payment_id):
     conn = get_connection()
     cur = conn.cursor()
     try:
-        # Get payment_status_id from status_name
-        cur.execute(
-            "SELECT payment_status_id FROM freshwash.payment_status WHERE status_name = %s",
-            (data['status'],)
-        )
-        status_row = cur.fetchone()
-        if not status_row:
-            return jsonify({"error": "Invalid status"}), 400
+        # Verify payment exists
+        cur.execute("SELECT payment_id FROM freshwash.payment WHERE payment_id = %s", (payment_id,))
+        if not cur.fetchone():
+            return jsonify({"error": "Payment not found"}), 404
+            
+        new_status = data.get('status', 'Pending')
         
-        status_id = status_row[0]
-        cur.execute(
-            "UPDATE freshwash.payment_status SET status_name = %s WHERE payment_id = %s",
-            (data['status'], payment_id)
-        )
+        # Upsert payment status
+        cur.execute("SELECT payment_status_id FROM freshwash.payment_status WHERE payment_id = %s", (payment_id,))
+        existing_status = cur.fetchone()
+        
+        if existing_status:
+            cur.execute(
+                "UPDATE freshwash.payment_status SET status_name = %s, status_timestamp = CURRENT_TIMESTAMP WHERE payment_id = %s",
+                (new_status, payment_id)
+            )
+        else:
+            cur.execute(
+                "INSERT INTO freshwash.payment_status (payment_id, status_name) VALUES (%s, %s)",
+                (payment_id, new_status)
+            )
+            
         conn.commit()
-        return jsonify({"message": "Payment status updated"}), 200
+        return jsonify({"message": "Payment status updated", "status": new_status}), 200
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 400

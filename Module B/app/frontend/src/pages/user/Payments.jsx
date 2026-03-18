@@ -7,22 +7,35 @@ const UserPayments = () => {
   const currentMember = getMemberId();
 
   const [payments, setPayments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    if (!currentMember) return;
-
     const fetchPayments = async () => {
+      if (!currentMember) return;
       try {
-        const response = await fetch(`http://localhost:5000/api/user/payments/${currentMember}`);
+        setLoading(true);
+        setError(null);
+        // Standardized URL matching apis/__init__.py registration
+        const response = await fetch(`http://127.0.0.1:5000/api/user/payments/${currentMember}`);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || `Server responded with ${response.status}`);
+        }
         const data = await response.json();
-        if (response.ok) setPayments(data);
+        // Ensure data is an array
+        setPayments(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error('Error fetching payments:', err);
+        setError(err.message || 'Connection error. Please try again later.');
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchPayments();
   }, [currentMember]);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState('all');
   const [selectedPayment, setSelectedPayment] = useState(null);
@@ -30,22 +43,25 @@ const UserPayments = () => {
   const filteredPayments = useMemo(() => {
     return payments.filter((payment) => {
       const matchesSearch =
-        payment.payment_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        payment.order_id.toLowerCase().includes(searchTerm.toLowerCase());
+        String(payment.payment_id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+        String(payment.order_id).toLowerCase().includes(searchTerm.toLowerCase());
+
+      const isPaid = payment.status && payment.status.toLowerCase() === 'success';
       const matchesMode =
         filterMode === 'all' ||
-        (filterMode === 'paid' && payment.payment_date !== null) ||
-        (filterMode === 'pending' && payment.payment_date === null);
+        (filterMode === 'paid' && isPaid) ||
+        (filterMode === 'pending' && !isPaid);
+
       return matchesSearch && matchesMode;
     });
   }, [payments, searchTerm, filterMode]);
 
   const stats = useMemo(() => {
     const paidAmount = payments
-      .filter((p) => p.payment_date !== null)
+      .filter((p) => p.status && p.status.toLowerCase() === 'success')
       .reduce((sum, p) => sum + p.payment_amount, 0);
     const pendingAmount = payments
-      .filter((p) => p.payment_date === null)
+      .filter((p) => !p.status || p.status.toLowerCase() !== 'success')
       .reduce((sum, p) => sum + p.payment_amount, 0);
     return { paidAmount, pendingAmount };
   }, [payments]);
@@ -60,9 +76,33 @@ const UserPayments = () => {
     return labels[mode] || mode;
   };
 
-  const getStatusClass = (paymentDate) => {
-    return paymentDate ? 'paid' : 'pending';
+  const getStatusClass = (status) => {
+    return status?.toLowerCase() === 'success' ? 'paid' : 'pending';
   };
+
+  const isPaymentPaid = (status) => status?.toLowerCase() === 'success';
+
+  if (loading) {
+    return (
+      <div className="admin-page">
+        <div className="loading-container">
+          <div className="loader"></div>
+          <p>Loading your payments...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="admin-page">
+        <div className="error-container">
+          <p className="error-message">Error: {error}</p>
+          <button onClick={() => window.location.reload()} className="action-btn">Retry</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="admin-page">
@@ -75,22 +115,22 @@ const UserPayments = () => {
         <div className="stat-box">
           <h3>Total Paid</h3>
           <p className="stat-value" style={{ color: '#10b981' }}>₹{stats.paidAmount.toFixed(2)}</p>
-          <span className="stat-label">Completed</span>
+          <span className="stat-label">Successful</span>
         </div>
         <div className="stat-box">
           <h3>Pending Payment</h3>
           <p className="stat-value" style={{ color: '#f59e0b' }}>₹{stats.pendingAmount.toFixed(2)}</p>
-          <span className="stat-label">Action Needed</span>
+          <span className="stat-label">Dues</span>
         </div>
         <div className="stat-box">
-          <h3>Total Amount</h3>
+          <h3>Total Potential</h3>
           <p className="stat-value">₹{(stats.paidAmount + stats.pendingAmount).toFixed(2)}</p>
           <span className="stat-label">All Orders</span>
         </div>
         <div className="stat-box">
-          <h3>Transactions</h3>
+          <h3>Activity</h3>
           <p className="stat-value">{payments.length}</p>
-          <span className="stat-label">Total</span>
+          <span className="stat-label">Transactions</span>
         </div>
       </div>
 
@@ -116,13 +156,13 @@ const UserPayments = () => {
             className={`filter-btn ${filterMode === 'paid' ? 'active' : ''}`}
             onClick={() => setFilterMode('paid')}
           >
-            Paid ({payments.filter((p) => p.payment_date !== null).length})
+            Paid ({payments.filter((p) => isPaymentPaid(p.status)).length})
           </button>
           <button
             className={`filter-btn ${filterMode === 'pending' ? 'active' : ''}`}
             onClick={() => setFilterMode('pending')}
           >
-            Pending ({payments.filter((p) => p.payment_date === null).length})
+            Pending ({payments.filter((p) => !isPaymentPaid(p.status)).length})
           </button>
         </div>
       </div>
@@ -145,14 +185,14 @@ const UserPayments = () => {
               {filteredPayments.length > 0 ? (
                 filteredPayments.map((payment) => (
                   <tr key={payment.payment_id}>
-                    <td className="order-id">{payment.payment_id}</td>
-                    <td>{payment.order_id}</td>
-                    <td>{getModeLabel(payment.payment_mode)}</td>
-                    <td className="amount">₹{payment.payment_amount.toFixed(2)}</td>
-                    <td>{payment.payment_date || 'Pending'}</td>
+                    <td className="payment-id">{payment.payment_id}</td>
+                    <td className="order-id">{payment.order_id}</td>
+                    <td>{getModeLabel(payment.payment_mode || 'Pending')}</td>
+                    <td className="amount">₹{(payment.payment_amount || 0).toFixed(2)}</td>
+                    <td>{payment.payment_date || 'N/A'}</td>
                     <td>
-                      <span className={`badge ${getStatusClass(payment.payment_date)}`}>
-                        {payment.payment_date ? 'Paid' : 'Pending'}
+                      <span className={`badge ${getStatusClass(payment.status)}`}>
+                        {isPaymentPaid(payment.status) ? 'Paid' : 'Pending'}
                       </span>
                     </td>
                     <td>
@@ -169,7 +209,7 @@ const UserPayments = () => {
               ) : (
                 <tr>
                   <td colSpan="7" className="no-data">
-                    No payments found
+                    {searchTerm || filterMode !== 'all' ? 'No payments match your criteria' : 'No payments found for your account'}
                   </td>
                 </tr>
               )}
@@ -200,11 +240,11 @@ const UserPayments = () => {
                 </div>
                 <div className="detail-item">
                   <label>Payment Mode</label>
-                  <p>{getModeLabel(selectedPayment.payment_mode)}</p>
+                  <p>{getModeLabel(selectedPayment.payment_mode || 'Pending')}</p>
                 </div>
                 <div className="detail-item">
                   <label>Amount</label>
-                  <p className="amount-highlight">₹{selectedPayment.payment_amount.toFixed(2)}</p>
+                  <p className="amount-highlight">₹{(selectedPayment.payment_amount || 0).toFixed(2)}</p>
                 </div>
                 <div className="detail-item">
                   <label>Payment Date</label>
@@ -214,10 +254,10 @@ const UserPayments = () => {
                   <label>Status</label>
                   <p>
                     <span
-                      className={`badge ${getStatusClass(selectedPayment.payment_date)}`}
+                      className={`badge ${getStatusClass(selectedPayment.status)}`}
                       style={{ display: 'inline-block' }}
                     >
-                      {selectedPayment.payment_date ? 'Paid' : 'Pending'}
+                      {isPaymentPaid(selectedPayment.status) ? 'Paid' : 'Pending'}
                     </span>
                   </p>
                 </div>
@@ -226,6 +266,38 @@ const UserPayments = () => {
           </div>
         </div>
       )}
+
+      <style>{`
+        .loading-container, .error-container {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          min-height: 400px;
+          text-align: center;
+        }
+
+        .loader {
+          width: 40px;
+          height: 40px;
+          border: 4px solid #f3f3f3;
+          border-top: 4px solid var(--primary);
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+          margin-bottom: 1rem;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+          color: #ef4444;
+          font-weight: 600;
+          margin-bottom: 1rem;
+        }
+      `}</style>
     </div>
   );
 };

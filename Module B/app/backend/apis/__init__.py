@@ -7,6 +7,7 @@ from .user.interactions.routes import interactions_bp
 from .user.profile.routes import profile_bp
 from .admin import register_admin_apis
 from .employee import register_employee_apis
+from .landing import landing_bp
 
 def init_apis(app):
     api_bp = Blueprint('api', __name__, url_prefix='/api')
@@ -14,10 +15,13 @@ def init_apis(app):
     # Auth APIs
     api_bp.register_blueprint(auth_bp, url_prefix='/auth')
     
+    # Landing APIs (Public)
+    api_bp.register_blueprint(landing_bp, url_prefix='/landing')
+    
     # User APIs
     api_bp.register_blueprint(stats_bp, url_prefix='/user')
     api_bp.register_blueprint(orders_bp, url_prefix='/user')
-    api_bp.register_blueprint(payments_bp, url_prefix='/user')
+    api_bp.register_blueprint(payments_bp, url_prefix='/user/payments')
     api_bp.register_blueprint(interactions_bp, url_prefix='/user')
     api_bp.register_blueprint(profile_bp, url_prefix='/user')
     

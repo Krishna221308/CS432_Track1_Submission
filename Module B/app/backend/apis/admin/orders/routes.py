@@ -66,15 +66,29 @@ def create_order():
             ),
         )
         order_id, order_date = cur.fetchone()
+        
+        # 2. Create the payment record (default mode: Pending)
+        cur.execute(
+            "INSERT INTO freshwash.payment (order_id, payment_mode, payment_amount, payment_date) "
+            "VALUES (%s, 'Pending', %s, CURRENT_TIMESTAMP) RETURNING payment_id",
+            (order_id, data['total_amount'])
+        )
+        payment_id = cur.fetchone()[0]
+        
+        # 3. Create the payment status record
+        cur.execute(
+            "INSERT INTO freshwash.payment_status (payment_id, status_name) VALUES (%s, 'Pending')",
+            (payment_id,)
+        )
 
-        # Optional: create an initial status log entry
+        # 4. Optional: create an initial status log entry
         cur.execute(
             "INSERT INTO freshwash.order_status_log (order_id, status_name) VALUES (%s, %s)",
             (order_id, data.get('current_status', 'Pending')),
         )
 
         conn.commit()
-        return jsonify({"message": "Order created", "order_id": order_id, "order_date": order_date.isoformat()}), 201
+        return jsonify({"message": "Order created", "order_id": order_id, "order_date": order_date.isoformat(), "payment_id": payment_id}), 201
     except Exception as e:
         conn.rollback()
         return jsonify({"error": str(e)}), 400

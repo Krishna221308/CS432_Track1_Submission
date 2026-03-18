@@ -1,6 +1,6 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles, Edit2 } from 'lucide-react';
+import { ShieldCheck, ShoppingBag, Zap, Clock, Sparkles } from 'lucide-react';
 import ThemeToggle from '../components/ThemeToggle';
 import '../styles/landing.css';
 
@@ -14,11 +14,26 @@ const serviceIcons = {
 const Landing = () => {
   const [services, setServices] = useState([]);
   const [pricing, setPricing] = useState([]);
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
   useEffect(() => {
-    // TODO: Fetch services and pricing from backend API
-    // setServices(fetchedServices);
-    // setPricing(fetchedPricing);
+    const fetchLandingData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://127.0.0.1:5000/api/landing/data');
+        if (!response.ok) throw new Error('Failed to fetch data');
+        const data = await response.json();
+        setServices(data.services || []);
+        setPricing(data.pricing || []);
+      } catch (err) {
+        console.error('Landing fetch error:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchLandingData();
   }, []);
   const pricingRef = useRef(null);
   const sectionRefs = useRef([]);
@@ -75,8 +90,8 @@ const Landing = () => {
         <div className="container">
           <span className="logo">FreshWash</span>
           <div className="nav-links">
-            <Link to="/login" className="login-link">Login</Link>
             <ThemeToggle />
+            <Link to="/login" className="nav-btn-link">Login</Link>
             <Link to="/login" state={{ mode: 'signup' }} className="cta-button">Sign Up</Link>
           </div>
         </div>
@@ -84,13 +99,13 @@ const Landing = () => {
 
       {/* ── Hero ── */}
       <section className="hero reveal">
-        <div className="container">
+        <div className="container hero-container">
           <div className="hero-content">
             <h1>Premium Laundry Services <span className="text-gradient">Delivered to Your Door</span></h1>
             <p>Experience the most reliable and professional laundry management system. We take&nbsp;the load off your hands so you can focus on what matters.</p>
             <div className="hero-actions">
-              <Link to="/login" state={{ mode: 'signup' }} className="primary-btn">Get Started Free</Link>
-              <button onClick={scrollToPricing} className="secondary-btn">View Pricing</button>
+              <Link to="/login" state={{ mode: 'signup' }} className="primary-btn">Get Started</Link>
+              <button onClick={scrollToPricing} className="secondary-btn">Pricing</button>
             </div>
           </div>
         </div>
@@ -103,20 +118,26 @@ const Landing = () => {
             <h2>Our Services</h2>
             <p>Comprehensive care for all your textile needs.</p>
           </div>
-          <div className="services-grid">
-            {services.map((s) => (
-              <div key={s.service_id} className="service-card">
-                <div className="service-icon">
-                  {serviceIcons[s.service_name] || <Sparkles size={32} />}
+          {loading ? (
+            <div className="loading-state">Loading services...</div>
+          ) : error ? (
+            <div className="error-state">Error: {error}</div>
+          ) : (
+            <div className="services-grid">
+              {services.map((s) => (
+                <div key={s.service_id} className="service-card">
+                  <div className="service-icon">
+                    {serviceIcons[s.service_name] || <Sparkles size={32} />}
+                  </div>
+                  <h3>{s.service_name}</h3>
+                  <p>{s.service_description}</p>
+                  <div className="service-price">
+                    Starting at <strong>₹{s.base_price}</strong>
+                  </div>
                 </div>
-                <h3>{s.service_name}</h3>
-                <p>{s.service_description}</p>
-                <div className="service-price">
-                  Starting at <strong>₹{s.base_price}</strong>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -127,33 +148,39 @@ const Landing = () => {
             <h2>Transparent Pricing</h2>
             <p>No hidden charges. See exactly what you pay for each item.</p>
           </div>
-          <div className="pricing-table-wrapper">
-            <table className="pricing-table">
-              <thead>
-                <tr>
-                  <th>Clothing Type</th>
-                  {services.map((s) => (
-                    <th key={s.service_id}>{s.service_name}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {clothTypes.map((ct) => (
-                  <tr key={ct}>
-                    <td className="cloth-type-cell">{ct}</td>
-                    {services.map((s) => {
-                      const price = priceLookup[`${s.service_id}__${ct}`];
-                      return (
-                        <td key={s.service_id}>
-                          {price !== undefined ? `₹${price}` : <span className="na">—</span>}
-                        </td>
-                      );
-                    })}
+          {loading ? (
+            <div className="loading-state">Loading pricing details...</div>
+          ) : error ? (
+            <div className="error-state">Error: {error}</div>
+          ) : (
+            <div className="pricing-table-wrapper">
+              <table className="pricing-table">
+                <thead>
+                  <tr>
+                    <th>Clothing Type</th>
+                    {services.map((s) => (
+                      <th key={s.service_id}>{s.service_name}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {clothTypes.map((ct) => (
+                    <tr key={ct}>
+                      <td className="cloth-type-cell">{ct}</td>
+                      {services.map((s) => {
+                        const price = priceLookup[`${s.service_id}__${ct}`];
+                        return (
+                          <td key={s.service_id}>
+                            {price !== undefined ? `₹${price}` : <span className="na">—</span>}
+                          </td>
+                        );
+                      })}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </section>
 
@@ -166,23 +193,28 @@ const Landing = () => {
           <div className="steps-container">
             <div className="step">
               <div className="step-number">1</div>
-              <h4>Schedule</h4>
-              <p>Book a pickup online or via our app.</p>
+              <h4>Join Us</h4>
+              <p>Sign up or log in to access your personal dashboard.</p>
             </div>
             <div className="step">
               <div className="step-number">2</div>
-              <h4>Pickup</h4>
-              <p>We collect your laundry from your doorstep.</p>
+              <h4>Place Order</h4>
+              <p>Choose your services and schedule a convenient pickup.</p>
             </div>
             <div className="step">
               <div className="step-number">3</div>
-              <h4>Clean</h4>
-              <p>Our experts clean and fold your items.</p>
+              <h4>Processing</h4>
+              <p>Our professional employees carefully process your laundry.</p>
             </div>
             <div className="step">
               <div className="step-number">4</div>
+              <h4>Payment</h4>
+              <p>Securely handle your payments through our various options.</p>
+            </div>
+            <div className="step">
+              <div className="step-number">5</div>
               <h4>Delivery</h4>
-              <p>We deliver it back, fresh and clean.</p>
+              <p>Get your fresh, clean laundry delivered to your door.</p>
             </div>
           </div>
         </div>
@@ -198,7 +230,6 @@ const Landing = () => {
             </div>
             <div className="footer-divider"></div>
             <p className="footer-copyright">&copy; 2026 FreshWash. All rights reserved.</p>
-            <Link to="/login" className="footer-link">Need Help?</Link>
           </div>
         </div>
       </footer>

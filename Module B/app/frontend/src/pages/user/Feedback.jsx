@@ -243,6 +243,11 @@ const UserFeedback = () => {
           overflow: hidden;
         }
 
+        body.dark-theme .form-card {
+          background: var(--bg-card);
+          border: 1px solid var(--glass-border);
+        }
+
         .card-header {
           display: flex;
           justify-content: space-between;
@@ -252,11 +257,20 @@ const UserFeedback = () => {
           background: #f9fafb;
         }
 
+        body.dark-theme .card-header {
+          background: rgba(255, 255, 255, 0.05);
+          border-bottom-color: var(--glass-border);
+        }
+
         .card-header h2 {
           margin: 0;
           font-size: 1.1rem;
           color: #1f2937;
           font-weight: 600;
+        }
+
+        body.dark-theme .card-header h2 {
+          color: #f3f4f6;
         }
 
         .form-body {
@@ -275,6 +289,10 @@ const UserFeedback = () => {
           color: #374151;
         }
 
+        body.dark-theme .form-group label {
+          color: #d1d5db;
+        }
+
         .form-select,
         .form-textarea {
           width: 100%;
@@ -285,6 +303,13 @@ const UserFeedback = () => {
           background-color: #fff;
           transition: border-color 0.2s;
           font-family: inherit;
+        }
+
+        body.dark-theme .form-select,
+        body.dark-theme .form-textarea {
+          background-color: rgba(30, 41, 59, 0.5);
+          border-color: var(--glass-border);
+          color: #f8fafc;
         }
 
         .form-select:hover,
@@ -341,6 +366,10 @@ const UserFeedback = () => {
           border-top: 1px solid #e5e7eb;
         }
 
+        body.dark-theme .form-actions {
+          border-top-color: var(--glass-border);
+        }
+
         .btn {
           padding: 10px 20px;
           border: none;
@@ -394,6 +423,10 @@ const UserFeedback = () => {
           margin-bottom: 16px;
         }
 
+        body.dark-theme .feedback-grid h2 {
+          color: #f3f4f6;
+        }
+
         .grid {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -409,8 +442,18 @@ const UserFeedback = () => {
           transition: all 0.2s;
         }
 
+        body.dark-theme .feedback-card {
+          background: var(--bg-card);
+          border-color: var(--glass-border);
+        }
+
         .feedback-card:hover {
           box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+          transform: translateY(-2px);
+        }
+
+        body.dark-theme .feedback-card:hover {
+          border-color: var(--primary);
         }
 
         .feedback-header {

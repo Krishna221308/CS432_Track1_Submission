@@ -14,7 +14,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: 
+  background-image:
     linear-gradient(rgba(56, 189, 248, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(56, 189, 248, 0.03) 1px, transparent 1px);
   background-size: 40px 40px;
@@ -23,14 +23,15 @@
 }
 
 body.light-theme .landing-page::before {
-  background-image: 
+  background-image:
     linear-gradient(rgba(0, 0, 0, 0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
 }
 
 /* ── Moving Mesh Gradients ── */
 .bg-blur-blob {
-  position: fixed; /* Keep blobs in view during scroll */
+  position: fixed;
+  /* Keep blobs in view during scroll */
   width: 800px;
   height: 800px;
   border-radius: 50%;
@@ -70,9 +71,17 @@ body.light-theme .bg-blur-blob {
 }
 
 @keyframes meshMove {
-  0% { transform: translate(0, 0) rotate(0deg) scale(1); }
-  50% { transform: translate(50px, 100px) rotate(180deg) scale(1.2); }
-  100% { transform: translate(-50px, -50px) rotate(360deg) scale(1); }
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(1);
+  }
+
+  50% {
+    transform: translate(50px, 100px) rotate(180deg) scale(1.2);
+  }
+
+  100% {
+    transform: translate(-50px, -50px) rotate(360deg) scale(1);
+  }
 }
 
 /* ── Reveal Animations ── */
@@ -90,7 +99,7 @@ body.light-theme .bg-blur-blob {
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  padding: 0 2rem;
 }
 
 .landing-nav {
@@ -128,14 +137,14 @@ body.light-theme .landing-nav {
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
-.login-link,
+.nav-btn-link,
 .cta-button {
-  padding: 0.75rem 1.75rem;
-  border-radius: 14px;
-  font-weight: 800;
+  padding: 0.65rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
   transition: all var(--transition-fast);
   text-transform: uppercase;
   font-size: 0.75rem;
@@ -145,7 +154,21 @@ body.light-theme .landing-nav {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 15px var(--primary-glow);
+  box-shadow: 0 4px 12px var(--primary-glow);
+}
+
+.nav-btn-link {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-main);
+  box-shadow: none;
+}
+
+.nav-btn-link:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
 }
 
 .login-link:hover,
@@ -198,20 +221,33 @@ body.light-theme .landing-nav {
 }
 
 @keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(30px); }
+
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(30px);
+  }
+}
+
+.hero-container {
+  display: flex;
+  justify-content: center;
+  text-align: center;
 }
 
 .hero-content {
-  max-width: 700px;
+  max-width: 800px;
   position: relative;
   z-index: 2;
 }
 
 .hero h1 {
-  font-size: 3.5rem;
+  font-size: 4rem;
   line-height: 1.1;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
   font-weight: 800;
 }
 
@@ -230,9 +266,10 @@ body.light-theme .landing-nav {
 
 .hero-actions {
   display: flex;
-  gap: 1rem;
+  gap: 1.5rem;
   justify-content: center;
   flex-wrap: wrap;
+  margin-top: 3rem;
 }
 
 .primary-btn {
@@ -300,7 +337,7 @@ body.dark-theme .secondary-btn {
 }
 
 /* Alternating Section Backgrounds */
-.services { 
+.services {
   padding: 120px 0;
   background: transparent;
   position: relative;
@@ -460,9 +497,9 @@ body.dark-theme .service-card {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, 
-    rgba(91, 124, 224, 0.08) 0%,
-    transparent 100%);
+  background: linear-gradient(135deg,
+      rgba(91, 124, 224, 0.08) 0%,
+      transparent 100%);
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
@@ -598,8 +635,8 @@ body.dark-theme .pricing-table-wrapper {
 
 .pricing-table tbody tr:hover {
   background: linear-gradient(90deg,
-    rgba(91, 124, 224, 0.08) 0%,
-    rgba(155, 157, 212, 0.05) 100%);
+      rgba(91, 124, 224, 0.08) 0%,
+      rgba(155, 157, 212, 0.05) 100%);
   transition: background 0.2s ease;
 }
 
@@ -618,9 +655,9 @@ body.dark-theme .pricing-table-wrapper {
 .how-it-works {
   padding: 120px 0;
   background: linear-gradient(180deg,
-    rgba(245, 245, 250, 0) 0%,
-    rgba(155, 157, 212, 0.07) 50%,
-    rgba(245, 245, 250, 0) 100%);
+      rgba(245, 245, 250, 0) 0%,
+      rgba(155, 157, 212, 0.07) 50%,
+      rgba(245, 245, 250, 0) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -648,7 +685,7 @@ body.dark-theme .pricing-table-wrapper {
   z-index: 2;
 }
 
-.step { 
+.step {
   text-align: center;
   position: relative;
   padding: 2rem;
@@ -668,8 +705,8 @@ body.dark-theme .step {
 
 .step:hover {
   background: linear-gradient(135deg,
-    rgba(255, 255, 255, 0.8) 0%,
-    rgba(245, 245, 250, 0.6) 100%);
+      rgba(255, 255, 255, 0.8) 0%,
+      rgba(245, 245, 250, 0.6) 100%);
   border-color: rgba(91, 124, 224, 0.3);
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(91, 124, 224, 0.12);
@@ -677,8 +714,8 @@ body.dark-theme .step {
 
 body.dark-theme .step:hover {
   background: linear-gradient(135deg,
-    rgba(51, 65, 85, 0.8) 0%,
-    rgba(30, 41, 59, 0.6) 100%);
+      rgba(51, 65, 85, 0.8) 0%,
+      rgba(30, 41, 59, 0.6) 100%);
   border-color: rgba(56, 189, 248, 0.3);
   box-shadow: 0 12px 24px rgba(56, 189, 248, 0.12);
 }
@@ -716,13 +753,13 @@ body.dark-theme .step:hover {
 }
 
 /* ── Footer ── */
-.landing-footer { 
-  padding: 50px 0 30px;
+.landing-footer {
+  padding: 30px 0 20px;
   border-top: 1px solid var(--glass-border);
   margin-top: 4rem;
   background: linear-gradient(180deg,
-    rgba(91, 124, 224, 0.03) 0%,
-    rgba(155, 157, 212, 0.05) 100%);
+      rgba(91, 124, 224, 0.03) 0%,
+      rgba(155, 157, 212, 0.05) 100%);
   position: relative;
 }
 
@@ -741,12 +778,12 @@ body.dark-theme .step:hover {
 }
 
 .footer-brand span {
-  font-size: 1.25rem;
+  font-size: 1.5rem;
 }
 
 .footer-brand p {
   color: var(--text-muted);
-  font-size: 0.85rem;
+  font-size: 1rem;
   margin: 0;
 }
 
@@ -757,7 +794,7 @@ body.dark-theme .step:hover {
 }
 
 .footer-copyright {
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   color: var(--text-muted);
   margin: 0;
   white-space: nowrap;
@@ -782,9 +819,58 @@ body.dark-theme .step:hover {
 }
 
 @media (max-width: 768px) {
-  .hero h1 { font-size: 2.5rem; }
-  .hero-actions { flex-direction: column; }
-  .footer-inner { flex-direction: column; gap: 1rem; align-items: flex-start; }
-  .footer-divider { width: 100%; height: 1px; }
-  .section-header h2 { font-size: 2rem; }
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+  }
+
+  .footer-inner {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .footer-divider {
+    width: 100%;
+    height: 1px;
+  }
+
+  .section-header h2 {
+    font-size: 2rem;
+  }
+}
+
+/* ── Loading and Error States ── */
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 3rem;
+  background: var(--bg-glass);
+  border-radius: 24px;
+  border: 1px solid var(--glass-border);
+  color: var(--text-muted);
+  font-weight: 600;
+  animation: pulse 2s infinite ease-in-out;
+}
+
+.error-state {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.6;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.6;
+  }
 }

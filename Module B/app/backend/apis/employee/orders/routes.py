@@ -18,9 +18,10 @@ def _order_belongs_to_employee(cur, order_id: int, employee_id: int) -> bool:
         SELECT 1
         FROM freshwash.laundry_order lo
         JOIN freshwash.member m ON m.member_id = lo.member_id
-        WHERE lo.order_id = %s AND m.assigned_employee_id = %s
+        LEFT JOIN freshwash.order_assignment oa ON oa.order_id = lo.order_id
+        WHERE lo.order_id = %s AND (m.assigned_employee_id = %s OR oa.employee_id = %s)
         """,
-        (order_id, employee_id),
+        (order_id, employee_id, employee_id),
     )
     return cur.fetchone() is not None
 
@@ -47,10 +48,10 @@ def get_assigned_orders(employee_id):
             FROM freshwash.laundry_order lo
             JOIN freshwash.member m ON m.member_id = lo.member_id
             LEFT JOIN freshwash.order_assignment oa ON oa.order_id = lo.order_id
-            WHERE m.assigned_employee_id = %s
+            WHERE m.assigned_employee_id = %s OR oa.employee_id = %s
             ORDER BY lo.order_date DESC
             """,
-            (employee_id,)
+            (employee_id, employee_id)
         )
         rows = cur.fetchall()
         orders = []
@@ -174,11 +175,27 @@ def create_order():
             """,
             (order_id,)
         )
+
+        # 4. Create the payment record (default mode: Pending)
+        cur.execute(
+            "INSERT INTO freshwash.payment (order_id, payment_mode, payment_amount, payment_date) "
+            "VALUES (%s, 'Pending', %s, CURRENT_TIMESTAMP) RETURNING payment_id",
+            (order_id, data['total_amount'])
+        )
+        payment_id = cur.fetchone()[0]
+        
+        # 5. Create the payment status record
+        cur.execute(
+            "INSERT INTO freshwash.payment_status (payment_id, status_name) VALUES (%s, 'Pending')",
+            (payment_id,)
+        )
+
         conn.commit()
         return jsonify({
             "message":    "Order created and assigned successfully",
             "order_id":   order_id,
-            "order_date": _isoformat(order_date)
+            "order_date": _isoformat(order_date),
+            "payment_id": payment_id
         }), 201
     except Exception as e:
         conn.rollback()

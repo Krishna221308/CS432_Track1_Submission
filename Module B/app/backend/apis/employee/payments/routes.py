@@ -19,11 +19,12 @@ def get_assigned_payments(employee_id):
             FROM freshwash.payment p
             JOIN freshwash.laundry_order lo ON lo.order_id = p.order_id
             JOIN freshwash.member m ON m.member_id = lo.member_id
+            LEFT JOIN freshwash.order_assignment oa ON oa.order_id = lo.order_id
             LEFT JOIN freshwash.payment_status ps ON ps.payment_id = p.payment_id
-            WHERE m.assigned_employee_id = %s
-            ORDER BY p.payment_date DESC
+            WHERE m.assigned_employee_id = %s OR oa.employee_id = %s
+            ORDER BY p.payment_date DESC NULLS LAST
             """,
-            (employee_id,)
+            (employee_id, employee_id)
         )
         rows = cur.fetchall()
         payments = []

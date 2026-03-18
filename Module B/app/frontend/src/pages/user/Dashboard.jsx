@@ -16,12 +16,12 @@ const UserDashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch stats
-        const statsRes = await fetch(`http://localhost:5000/api/user/stats/${currentMember}`);
+        const statsRes = await fetch(`http://127.0.0.1:5000/api/user/stats/${currentMember}`);
         const statsData = await statsRes.json();
         if (statsRes.ok) setStats(statsData);
 
         // Fetch orders
-        const ordersRes = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const ordersRes = await fetch(`http://127.0.0.1:5000/api/user/orders/${currentMember}`);
         const ordersData = await ordersRes.json();
         if (ordersRes.ok) setMemberOrders(ordersData);
       } catch (err) {
@@ -124,6 +124,14 @@ const UserDashboard = () => {
           padding: 16px 20px;
           border-bottom: 1px solid #e5e7eb;
           background: #f9fafb;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+        }
+
+        body.dark-theme .card-header {
+          background: rgba(255, 255, 255, 0.05);
+          border-bottom-color: var(--glass-border);
         }
 
         .card-header h2 {
@@ -131,6 +139,10 @@ const UserDashboard = () => {
           font-size: 1.1rem;
           color: #1f2937;
           font-weight: 600;
+        }
+
+        body.dark-theme .card-header h2 {
+          color: #f3f4f6;
         }
       `}</style>
     </div>
