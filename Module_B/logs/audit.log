@@ -1,0 +1,6 @@
+{"timestamp": "2026-03-21T15:56:56.271600", "user": "Anonymous/Guest", "method": "POST", "path": "/api/auth/login", "status": 200, "ip": "127.0.0.1", "payload": {"username": "admin", "password": "nimda"}}
+{"timestamp": "2026-03-21T15:56:56.283133", "user": "Anonymous/Guest", "method": "GET", "path": "/api/admin/lost-items/fast-search/1", "status": 200, "ip": "127.0.0.1", "payload": null}
+{"timestamp": "2026-03-21T15:56:56.290041", "user": "Anonymous/Guest", "method": "GET", "path": "/api/admin/lost-items/range-search", "status": 200, "ip": "127.0.0.1", "payload": null}
+{"timestamp": "2026-03-21T18:29:35.080961", "user": "Anonymous/Guest", "method": "POST", "path": "/api/auth/login", "status": 401, "ip": "127.0.0.1", "payload": {"username": "anon", "password": "e123", "expected_role": "user"}}
+{"timestamp": "2026-03-21T18:30:01.443188", "user": "Anonymous/Guest", "method": "POST", "path": "/api/auth/signup", "status": 201, "ip": "127.0.0.1", "payload": {"username": "anon", "password": "e123@12/A", "name": "ae", "contact": "1234567890", "age": "18", "email": "ake@mail.com", "address": "To be updated"}}
+{"timestamp": "2026-03-21T18:30:01.461933", "user": "Anonymous/Guest", "method": "POST", "path": "/api/auth/login", "status": 200, "ip": "127.0.0.1", "payload": {"username": "anon", "password": "e123@12/A", "expected_role": "user"}}
