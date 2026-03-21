@@ -16,7 +16,7 @@ const UserOrders = () => {
     const fetchOrders = async () => {
       try {
         setLoading(true);
-        const response = await fetch(`http://127.0.0.1:5000/api/user/orders/${currentMember}`);
+        const response = await fetch(`http://127.0.0.1:5001/api/user/orders/${currentMember}`);
         const data = await response.json();
         if (response.ok) {
           setOrders(data);

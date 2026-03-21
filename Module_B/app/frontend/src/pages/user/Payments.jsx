@@ -17,7 +17,7 @@ const UserPayments = () => {
         setLoading(true);
         setError(null);
         // Standardized URL matching apis/__init__.py registration
-        const response = await fetch(`http://127.0.0.1:5000/api/user/payments/${currentMember}`);
+        const response = await fetch(`http://127.0.0.1:5001/api/user/payments/${currentMember}`);
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
           throw new Error(errorData.error || `Server responded with ${response.status}`);
