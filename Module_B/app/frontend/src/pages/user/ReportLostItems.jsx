@@ -1,0 +1,340 @@
+import React, { useState, useMemo, useEffect } from 'react';
+import { Plus, Trash2, AlertCircle } from 'lucide-react';
+import { useToast } from '../../components/Toast';
+import '../../styles/admin.css';
+import { getMemberId } from '../../utils/auth';
+
+const UserReportLostItems = () => {
+  const currentMember = getMemberId();
+
+  const [memberOrders, setMemberOrders] = useState([]);
+  const [lostItems, setLostItems] = useState([]);
+
+  useEffect(() => {
+    if (!currentMember) return;
+
+    const fetchOrders = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const data = await response.json();
+        if (response.ok) setMemberOrders(data);
+      } catch (err) {
+        console.error('Error fetching orders for lost items:', err);
+      }
+    };
+
+    fetchOrders();
+  }, [currentMember]);
+  const [showReportForm, setShowReportForm] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState('');
+  const [itemDescription, setItemDescription] = useState('');
+  const addToast = useToast();
+
+  const handleReportItem = async () => {
+    if (!selectedOrder || !itemDescription.trim()) {
+      addToast('Please select an order and describe the lost item', 'error');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:5000/api/user/lost-items', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          order_id: selectedOrder,
+          item_description: itemDescription,
+          compensation_amount: 0 // Backend defaults to 0
+        }),
+      });
+
+      if (!response.ok) throw new Error('Failed to report lost item');
+
+      addToast('Lost item reported successfully!', 'success');
+
+      // Refresh local state (simplified)
+      setLostItems([...lostItems, {
+        lost_id: 'NEW',
+        order_id: selectedOrder,
+        item_description: itemDescription,
+        reported_date: 'Just now',
+        compensation_amount: 0
+      }]);
+
+      setSelectedOrder('');
+      setItemDescription('');
+      setShowReportForm(false);
+    } catch (err) {
+      addToast(err.message, 'error');
+    }
+  };
+
+  const getOrderTotal = (orderId) => {
+    const order = memberOrders.find((o) => o.order_id === orderId);
+    return order ? order.total_amount : 0;
+  };
+
+  return (
+    <div className="admin-page">
+      <header className="page-header">
+        <h1>Report Lost/Damaged Items</h1>
+        <p>Report any lost or damaged items from your orders</p>
+      </header>
+
+
+      <div className="stats-section">
+        <div className="stat-box">
+          <h3>Total Orders</h3>
+          <p className="stat-value">{memberOrders.length}</p>
+        </div>
+        <div className="stat-box">
+          <h3>Items Reported</h3>
+          <p className="stat-value" style={{ color: '#ef4444' }}>{lostItems.length}</p>
+          <span className="stat-label">Lost/Damaged</span>
+        </div>
+        <div className="stat-box">
+          <h3>Compensation Requested</h3>
+          <p className="stat-value">₹{lostItems.reduce((sum, i) => sum + i.compensation_amount, 0).toFixed(2)}</p>
+          <span className="stat-label">Total</span>
+        </div>
+      </div>
+
+      <div className="form-card">
+        <div className="card-header">
+          <h2>Report a Lost/Damaged Item</h2>
+          {!showReportForm && (
+            <button className="btn btn-primary" onClick={() => setShowReportForm(true)}>
+              <Plus size={18} style={{ marginRight: '8px' }} />
+              Report Item
+            </button>
+          )}
+        </div>
+
+        {showReportForm && (
+          <div className="form-body">
+            <div className="form-group">
+              <label htmlFor="order-select">Select Order *</label>
+              <select
+                id="order-select"
+                className="form-select"
+                value={selectedOrder}
+                onChange={(e) => setSelectedOrder(e.target.value)}
+              >
+                <option value="">-- Choose an Order --</option>
+                {memberOrders.map((order) => (
+                  <option key={order.order_id} value={order.order_id}>
+                    {order.order_id} - {order.order_date} (₹{order.total_amount.toFixed(2)})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="item-desc">Item Description *</label>
+              <textarea
+                id="item-desc"
+                className="form-textarea"
+                placeholder="Describe the lost or damaged item (e.g., Blue Cotton Shirt, size M)"
+                value={itemDescription}
+                onChange={(e) => setItemDescription(e.target.value)}
+                rows="4"
+              />
+            </div>
+
+            <div className="form-actions">
+              <button className="btn btn-secondary" onClick={() => setShowReportForm(false)}>
+                Cancel
+              </button>
+              <button className="btn btn-primary" onClick={handleReportItem}>
+                Submit Report
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {lostItems.length > 0 && (
+        <div className="table-card">
+          <div className="card-header">
+            <h2>Your Reported Items</h2>
+          </div>
+          <div className="table-container">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Report ID</th>
+                  <th>Order ID</th>
+                  <th>Item Description</th>
+                  <th>Reported Date</th>
+                  <th>Compensation</th>
+                </tr>
+              </thead>
+              <tbody>
+                {lostItems.map((item) => (
+                  <tr key={item.lost_id}>
+                    <td className="order-id">{item.lost_id}</td>
+                    <td>{item.order_id}</td>
+                    <td>{item.item_description}</td>
+                    <td>{item.reported_date}</td>
+                    <td className="amount">
+                      {item.compensation_amount > 0 ? `₹${item.compensation_amount.toFixed(2)}` : 'Pending'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      <style>{`
+        .form-card {
+          background: white;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          margin-bottom: 24px;
+          overflow: hidden;
+        }
+
+        body.dark-theme .form-card {
+          background: var(--bg-card);
+          border: 1px solid var(--glass-border);
+        }
+
+        .card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 16px 20px;
+          border-bottom: 1px solid #e5e7eb;
+          background: #f9fafb;
+        }
+
+        body.dark-theme .card-header {
+          background: rgba(255, 255, 255, 0.05);
+          border-bottom-color: var(--glass-border);
+        }
+
+        .card-header h2 {
+          margin: 0;
+          font-size: 1.1rem;
+          color: #1f2937;
+          font-weight: 600;
+        }
+
+        body.dark-theme .card-header h2 {
+          color: #f3f4f6;
+        }
+
+        .form-body {
+          padding: 24px;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-size: 0.95rem;
+          font-weight: 500;
+          color: #374151;
+        }
+
+        body.dark-theme .form-group label {
+          color: #d1d5db;
+        }
+
+        .form-select,
+        .form-textarea {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #e5e7eb;
+          border-radius: 8px;
+          font-size: 14px;
+          background-color: #fff;
+          transition: border-color 0.2s;
+          font-family: inherit;
+        }
+
+        body.dark-theme .form-select,
+        body.dark-theme .form-textarea {
+          background-color: rgba(30, 41, 59, 0.5);
+          border-color: var(--glass-border);
+          color: #f8fafc;
+        }
+
+        .form-select:hover,
+        .form-textarea:hover {
+          border-color: #d1d5db;
+        }
+
+        .form-select:focus,
+        .form-textarea:focus {
+          outline: none;
+          border-color: #3b82f6;
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-textarea {
+          resize: vertical;
+        }
+
+        .form-actions {
+          display: flex;
+          gap: 12px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e7eb;
+        }
+
+        body.dark-theme .form-actions {
+          border-top-color: var(--glass-border);
+        }
+
+        .btn {
+          padding: 10px 20px;
+          border: none;
+          border-radius: 6px;
+          font-size: 14px;
+          font-weight: 500;
+          cursor: pointer;
+          transition: all 0.2s;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .btn-primary {
+          background: #3b82f6;
+          color: white;
+        }
+
+        .btn-primary:hover {
+          background: #2563eb;
+        }
+
+        .btn-secondary {
+          background: #e5e7eb;
+          color: #374151;
+        }
+
+        .btn-secondary:hover {
+          background: #d1d5db;
+        }
+
+        .success-message {
+          background: #d1fae5;
+          border: 1px solid #6ee7b7;
+          color: #047857;
+          padding: 12px 16px;
+          border-radius: 6px;
+          margin-bottom: 24px;
+          display: flex;
+          align-items: center;
+        }
+      `}</style>
+    </div>
+  );
+};
+
+export default UserReportLostItems;
