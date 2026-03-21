@@ -21,7 +21,8 @@ if platform.system() == "Linux":
                 pass
 
 # Load the shared library
-lib_path = os.path.abspath("./libdbms.so")
+_dir = os.path.dirname(os.path.abspath(__file__))
+lib_path = os.path.join(_dir, "libdbms.so")
 lib = ctypes.CDLL(lib_path)
 
 
