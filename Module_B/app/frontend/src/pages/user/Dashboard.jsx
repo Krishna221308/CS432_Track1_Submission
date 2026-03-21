@@ -16,12 +16,12 @@ const UserDashboard = () => {
     const fetchData = async () => {
       try {
         // Fetch stats
-        const statsRes = await fetch(`http://127.0.0.1:5000/api/user/stats/${currentMember}`);
+        const statsRes = await fetch(`http://127.0.0.1:5001/api/user/stats/${currentMember}`);
         const statsData = await statsRes.json();
         if (statsRes.ok) setStats(statsData);
 
         // Fetch orders
-        const ordersRes = await fetch(`http://127.0.0.1:5000/api/user/orders/${currentMember}`);
+        const ordersRes = await fetch(`http://127.0.0.1:5001/api/user/orders/${currentMember}`);
         const ordersData = await ordersRes.json();
         if (ordersRes.ok) setMemberOrders(ordersData);
       } catch (err) {

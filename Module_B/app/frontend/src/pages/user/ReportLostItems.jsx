@@ -15,7 +15,7 @@ const UserReportLostItems = () => {
 
     const fetchOrders = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const response = await fetch(`http://localhost:5001/api/user/orders/${currentMember}`);
         const data = await response.json();
         if (response.ok) setMemberOrders(data);
       } catch (err) {
@@ -37,7 +37,7 @@ const UserReportLostItems = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/user/lost-items', {
+      const response = await fetch('http://localhost:5001/api/user/lost-items', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

@@ -15,7 +15,7 @@ const UserFeedback = () => {
 
     const fetchData = async () => {
       try {
-        const ordersRes = await fetch(`http://localhost:5000/api/user/orders/${currentMember}`);
+        const ordersRes = await fetch(`http://localhost:5001/api/user/orders/${currentMember}`);
         const ordersData = await ordersRes.json();
         if (ordersRes.ok) setMemberOrders(ordersData);
 
@@ -49,7 +49,7 @@ const UserFeedback = () => {
     }
 
     try {
-      const response = await fetch('http://localhost:5000/api/user/feedback', {
+      const response = await fetch('http://localhost:5001/api/user/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
