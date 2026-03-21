@@ -1,141 +1,112 @@
-CS 432 Databases - Assignment 2: Application Development and Database Index Structure Implementation
+# FreshWash DBMS: B+ Tree Indexing & Management System
 
-Deadline: 6:00 PM, 22 March 2026 Instructor: Dr. Yogesh K. Meena Total Marks: 100 (Module A: 40, Module B: 60) 
-Overview
+Welcome to the **FreshWash DBMS** project. This repository contains a high-performance database indexing engine (Module A) and a full-stack laundry management application (Module B) featuring role-based access control (RBAC), SQL optimization, and an integrated B+ Tree cache.
 
-The assignment transitions from database design to active implementation through two independent modules.
+---
 
-    Module A (The Engine): Build a lightweight DBMS B+ Tree indexing engine from scratch in Python.
+## 🚀 Quick Start
 
-    Module B (The Interface): Develop a secure, optimized local web application with an API layer and Role-Based Access Control (RBAC).
+### 1. Prerequisites
+Ensure you have the following installed:
+- **C++ Compiler:** `g++` (with support for C++17)
+- **Python:** 3.8+ (with `psycopg2`, `Flask`, `Flask-CORS`, `pandas`, `matplotlib`, `Faker`)
+- **Database:** PostgreSQL 15+
+- **Frontend:** Node.js (v18+) and `npm`
 
-Module A: Lightweight DBMS with B+ Tree Index (40 Marks)
-Core Requirements
+---
 
-    Implement a B+ Tree from scratch in Python to act as the indexing engine.
+## 🛠️ Module A: The Indexing Engine
 
-    Insertion: Insert keys while ensuring automatic node splitting.
+Module A implements a high-performance **B+ Tree** from scratch in C++ with a Python wrapper.
 
-    Deletion: Remove keys with proper merging and redistribution.
+### Compilation
+Compile the C++ core into a shared library for Python use:
+```bash
+cd Module_A/database/
+g++ -shared -o libdbms.so -fPIC BPlusTree.cpp BruteForceDB.cpp wrapper.cpp
+```
 
-    Exact Search: Check if a key exists.
+### Performance Benchmarking
+Run the benchmarking suite to compare the B+ Tree against a linear search (Brute Force) approach:
+```bash
+# Pre-loading libstdc++ may be required in some Linux environments (e.g., Conda)
+LD_PRELOAD=/usr/lib/libstdc++.so.6 python3 performance_analyzer.py
+```
 
-    Range Queries: Retrieve all keys within a specific range.
+---
 
-    Value Storage: Associate values (table records) with the tree keys.
+## 🧺 Module B: FreshWash Web Application
 
-Benchmarking & Analysis
+Module B is a full-stack system for managing laundry operations, optimized for performance and security.
 
-    Compare the B+ Tree against a linear "Brute ForceDB" approach.
+### 1. Database Setup
+Initialize the PostgreSQL database:
+```bash
+# Create the database
+psql -U postgres -c "CREATE DATABASE freshwashdb ENCODING 'UTF8';"
 
-    Measure and compare insertion time, search time, deletion time, range query time, and memory usage .
+# Load the schema (from the root directory)
+psql -U postgres -d freshwashdb -f Module_B/sql/schema.sql
+```
+*Default DB Credentials: User: `postgres`, Password: `mypassword`, DB: `freshwashdb`*
 
-    Conduct automated benchmarking using random key sets (e.g., range(100, 100000, 1000)).
+### 2. Backend Setup
+```bash
+cd Module_B/app/backend/
+pip install -r ../../requirements.txt
 
-    Visualize the benchmarking results using Matplotlib plots.
+# Run the Flask server
+python3 main.py
+```
+The backend will be available at `http://localhost:5001`.
 
-Visualization
+### 3. Frontend Setup
+```bash
+cd Module_B/app/frontend/
+npm install
+npm run dev
+```
+The UI will be available at `http://localhost:5173`.
 
-    Use graphviz (specifically graphviz.Digraph) to visualize the tree.
+### 4. Integration Benchmarking
+Run the detailed integration benchmark to see the Module A B+ Tree engine acting as a cache for the PostgreSQL database:
+```bash
+cd Module_B/app/backend/
+python3 bench_module_b.py
+```
 
-    The visualization must show the hierarchy of internal/leaf nodes, parent-child relationships, and highlight the linked-list connections in the leaf nodes .
+---
 
-Deliverables for Module A
+## 📊 Key Performance Insights
 
-    Source Code: db_manager.py, table.py, bplustree.py, bruteforce.py, requirements.txt.
+| Metric | Result | Impact |
+| :--- | :--- | :--- |
+| **B+ Tree Search (vs Brute Force)** | ~1700x Faster | Scales O(log N) for large datasets. |
+| **SQL Query Optimization** | 85% Reduction | Targeted indexing on high-traffic JOINs. |
+| **Module A Cache Integration** | 38x Faster Search | Outperforms DB-level B-Tree for point lookups. |
 
-    report.ipynb: A Jupyter Notebook containing the introduction, implementation details, benchmarking graphs/tables, tree visualizations, and conclusion .
+---
 
-    Video Demonstration: A 3-5 minute screen capture with audio explaining the code, demonstrating operations, showing Graphviz visuals, and explaining the Matplotlib performance graphs . Provide an unlisted YouTube or Google Drive link.
+## 📂 Project Structure
 
-Module B: Local API Development, RBAC, and Database Optimisation (60 Marks)
-Core Requirements
+- **`Module_A/`**: B+ Tree source code (C++/Python), benchmarks, and `report.ipynb`.
+- **`Module_B/`**: 
+  - `app/backend/`: Flask REST API, auth logic, and cache integration.
+  - `app/frontend/`: React-based dashboard UI.
+  - `sql/`: PostgreSQL schema and optimization scripts.
+- **`repository_report.md`**: A detailed technical breakdown of the entire system.
 
-    Tech Stack: You may choose your preferred backend language, local server environment, and directory structure.
+---
 
-    Local DB Setup: Initialize a local database handling your Task 1 project-specific tables and core system data (members, credentials). Do not duplicate core data inside project tables.
+## 🔐 Credentials for Testing
 
-    API & UI: Develop a web UI and local REST APIs for CRUD operations on your tables. Include a "Member Portfolio" feature restricted to authenticated users.
+| Role | Username | Password |
+| :--- | :--- | :--- |
+| **Admin** | `admin` | `nimba` |
+| **Employee** | `ramesh.kumar` | `emp123` |
+| **User** | (Register via UI) | - |
 
-    Security & RBAC: APIs must validate sessions locally. Enforce RBAC: Admins get full access, Regular Users get restricted/read-only access .
+---
 
-    Audit Logging: Database modifications must be logged locally to a file (e.g., audit.log) or table. Unauthorized direct database modifications must be identifiable.
-
-SQL Indexing & Optimisation
-
-    Identify slow or frequently accessed API endpoints.
-
-    Apply SQL indexing (single, composite, or unique) targeting WHERE, JOIN, or ORDER BY clauses.
-
-    Quantitatively measure API and SQL execution times before and after indexing .
-
-    Use the EXPLAIN statement to document how the access plan changed.
-
-Deliverables for Module B
-
-    Source Code: Complete code for UI, APIs, auth logic, and SQL creation scripts.
-
-    Security Logs: The audit.log files showing session validation and unauthorized modifications.
-
-    Optimisation Report (PDF or .ipynb): Document schema design, security implementation, indexing strategy, and before/after performance benchmarks .
-
-    Video Demonstration: A 3-5 minute video with audio narrating the UI/API functionality, RBAC constraints, and the logging mechanism .
-
-Submission Guidelines
-
-    Submit a single private GitHub repository link.
-
-    Organize into separate Module_A and Module_B folders.
-
-Appendix Code Boilerplates
-
-A. bplustree.py 
-Python
-
-class BPlusTree:
-    def search(self, key): pass
-    def insert(self, key, value): pass
-    def _insert_non_full(self, node, key, value): pass
-    def _split_child(self, parent, index): pass
-    def delete(self, key): pass
-    def _delete(self, node, key): pass
-    def _fill_child(self, node, index): pass
-    def _borrow_from_prev(self, node, index): pass
-    def _borrow_from_next(self, node, index): pass
-    def _merge(self, node, index): pass
-    def update(self, key, new_value): pass
-    def range_query(self, start_key, end_key): pass
-    def get_all(self): pass
-    def visualize_tree(self): pass
-    def _add_nodes(self, dot, node): pass
-    def _add_edges(self, dot, node): pass
-
-B. bruteforce.py 
-Python
-
-class BruteForceDB:
-    def __init__(self):
-        self.data = []
-
-    def insert(self, key):
-        self.data.append(key)
-
-    def search(self, key):
-        return key in self.data
-
-    def delete(self, key):
-        if key in self.data:
-            self.data.remove(key)
-
-    def range_query(self, start, end):
-        return [k for k in self.data if start <= k <= end]
-
-C. API Documentation Requirements 
-
-    /login (POST): Accepts JSON user and password. Returns 200 with a session_token or 401 on failure.
-
-    /isAuth (GET): Checks session_token. Returns 200 with user role details or 401 if invalid/expired.
-
-    / (GET): Welcome endpoint. Returns 200 with a welcome message.
-
-Copy that text above and drop it into a new chat. Do you want me to start mapping out the pure Python implementation of the bplustree.py methods while you do that?
+## 📝 License
+This project is for academic purposes as part of the CS 432 Databases course.
