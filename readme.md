@@ -12,6 +12,7 @@ Ensure you have the following installed:
 - Python: 3.8+ (with psycopg2, Flask, Flask-CORS, pandas, matplotlib, Faker)
 - Database: PostgreSQL 15+
 - Frontend: Node.js (v18+) and npm
+- Linux OS
 
 ---
 
@@ -46,7 +47,7 @@ Initialize the PostgreSQL database:
 sudo -u postgres psql -c "CREATE DATABASE freshwashdb ENCODING 'UTF8';"
 
 # Load the schema (from the root directory)
-sudo -u postgres psql -d freshwashdb -f Module_B/sql/schema.sql
+sudo -u postgres psql -d freshwashdb -f ../../Module_B/sql/schema.sql
 
 ```
 *Default DB Credentials: User: postgres, Password: mypassword, DB: freshwashdb*
