@@ -12,6 +12,7 @@ Ensure you have the following installed:
 - Python: 3.8+ (with psycopg2, Flask, Flask-CORS, pandas, matplotlib, Faker)
 - Database: PostgreSQL 15+
 - Frontend: Node.js (v18+) and npm
+- For Linux operating system only 
 
 ---
 
