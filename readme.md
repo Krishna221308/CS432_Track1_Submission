@@ -47,6 +47,7 @@ sudo -u postgres psql -c "CREATE DATABASE freshwashdb ENCODING 'UTF8';"
 
 # Load the schema (from the root directory)
 sudo -u postgres psql -d freshwashdb -f Module_B/sql/schema.sql
+
 ```
 *Default DB Credentials: User: postgres, Password: mypassword, DB: freshwashdb*
 
