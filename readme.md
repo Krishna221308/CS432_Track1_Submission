@@ -43,10 +43,11 @@ Module B is a full-stack system for managing laundry operations, optimized for p
 Initialize the PostgreSQL database:
 ```bash
 # Create the database
-psql -U postgres -c "CREATE DATABASE freshwashdb ENCODING 'UTF8';"
+sudo -u postgres psql -c "CREATE DATABASE freshwashdb ENCODING 'UTF8';"
 
 # Load the schema (from the root directory)
-psql -U postgres -d freshwashdb -f Module_B/sql/schema.sql
+
+sudo -u postgres psql -d freshwashdb -f Module_B/sql/schema.sql
 ```
 *Default DB Credentials: User: `postgres`, Password: `mypassword`, DB: `freshwashdb`*
 
